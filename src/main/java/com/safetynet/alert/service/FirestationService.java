@@ -3,6 +3,7 @@ package com.safetynet.alert.service;
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.AttachedAddress;
 import com.safetynet.alert.model.Firestation;
+import com.safetynet.alert.model.MappingFirestationAddress;
 import com.safetynet.alert.repository.FirestationRepository;
 import lombok.Getter;
 import lombok.Setter;
@@ -106,48 +107,82 @@ public class FirestationService {
     /**
      * Get firestations from one of theirs addresses
      *
-     * @param firestationId - the id of the firestation in which the address has to be added
-     * @param address       - a string which is a new address to add
+     * @param mappingFirestationAddress - the id of the firestation in which the address has to be added and the address to add
      * @return a String message indicating the effectuated operations: the number of the firestation created or updated and the address created within this firestation
      * @throws NotRightFormatToPostException   - when the mapping given in parameter doesn't contain required information
      * @throws MappingAlreadyExistingException - when the mapping given in parameter already exists
      */
-    public String addNewMapping(int firestationId, String address) throws NotRightFormatToPostException, MappingAlreadyExistingException {
+    // public String addNewMapping(int firestationId, String address) throws NotRightFormatToPostException, MappingAlreadyExistingException {
+    public String addNewMapping(MappingFirestationAddress mappingFirestationAddress) throws NotRightFormatToPostException, MappingAlreadyExistingException {
         log.debug("The function addNewMapping in FirestationService is beginning.");
-        if (firestationId != 0) {
-            try {
-                String message;
-                Optional<Firestation> firestation = firestationRepository.findById(firestationId);
-                if (firestation.isPresent()) {
-                    Firestation firestationWithNewAddress = firestation.get();
-                    if (!isAddressAttachedToFireStation(firestationWithNewAddress, address)) {
-                        firestationWithNewAddress.addAttachedAddress(new AttachedAddress(address));
-                        firestationRepository.save(firestationWithNewAddress);
-                        message = "The firestation number " + firestationId + " was already existing,\n" +
-                                "the address \"" + address + "\" have been added to this firestation.";
-                        log.info(message);
-                        log.debug("The function addNewMapping in FirestationService is ending, an address have been added to an existing firestation.");
-                    } else {
-                        throw new MappingAlreadyExistingException("The address " + address + " was already attached to the firestation number " + firestationId + ".\n");
-                    }
-                } else {
-                    Firestation newStation = new Firestation();
-                    newStation.setStationId(firestationId);
-                    newStation.addAttachedAddress(new AttachedAddress(address));
-                    firestationRepository.save(newStation);
-                    message = "The firestation number " + firestationId + " have been created,\n" +
-                            " the address \"" + address + "\" have been added to this firestation.";
-                    log.info(message);
-                    log.debug("The function addNewMapping in FirestationService is ending, a firestation have been created and an address have been added to the new firestation.");
-                }
-                return message;
-            } catch (NullPointerException exception) {
-                throw new NotRightFormatToPostException("There is something missing in the request :\nto post a new mapping there should be a \"firestationId\" and an \"address\" fields.\n");
-            }
-        } else {
+
+        String message;
+        if ((mappingFirestationAddress.getFirestationId() == 0) || (mappingFirestationAddress.getAddress() == null)) {
             throw new NotRightFormatToPostException("There is something missing in the request :\nto post a new mapping there should be a \"firestationId\" and an \"address\" fields.\n");
+        } else {
+            int id = mappingFirestationAddress.getFirestationId();
+            String address = mappingFirestationAddress.getAddress();
+            Optional<Firestation> firestation = firestationRepository.findById(id);
+            if (firestation.isPresent()) {
+                Firestation firestationWithNewAddress = firestation.get();
+                if (!isAddressAttachedToFireStation(firestationWithNewAddress, address)) {
+                    firestationWithNewAddress.addAttachedAddress(new AttachedAddress(address));
+                    firestationRepository.save(firestationWithNewAddress);
+                    message = "The firestation number " + id + " was already existing,\n" +
+                            "the address \"" + address + "\" have been added to this firestation.";
+                    log.info(message);
+                    log.debug("The function addNewMapping in FirestationService is ending, an address have been added to an existing firestation.");
+                } else {
+                    throw new MappingAlreadyExistingException("The address " + address + " was already attached to the firestation number " + id + ".\n");
+                }
+            } else {
+                Firestation newStation = new Firestation();
+                newStation.setStationId(id);
+                newStation.addAttachedAddress(new AttachedAddress(address));
+                firestationRepository.save(newStation);
+                message = "The firestation number " + id + " have been created,\n" +
+                        " the address \"" + address + "\" have been added to this firestation.";
+                log.info(message);
+                log.debug("The function addNewMapping in FirestationService is ending, a firestation have been created and an address have been added to the new firestation.");
+            }
         }
+        return message;
     }
+
+//
+//        if (firestationId != 0) {
+//            try {
+//
+//                if (firestation.isPresent()) {
+//                    Firestation firestationWithNewAddress = firestation.get();
+//                    if (!isAddressAttachedToFireStation(firestationWithNewAddress, address)) {
+//                        firestationWithNewAddress.addAttachedAddress(new AttachedAddress(address));
+//                        firestationRepository.save(firestationWithNewAddress);
+//                        message = "The firestation number " + id + " was already existing,\n" +
+//                                "the address \"" + address + "\" have been added to this firestation.";
+//                        log.info(message);
+//                        log.debug("The function addNewMapping in FirestationService is ending, an address have been added to an existing firestation.");
+//                    } else {
+//                        throw new MappingAlreadyExistingException("The address " + address + " was already attached to the firestation number " + firestationId + ".\n");
+//                    }
+//                } else {
+//                    Firestation newStation = new Firestation();
+//                    newStation.setStationId(firestationId);
+//                    newStation.addAttachedAddress(new AttachedAddress(address));
+//                    firestationRepository.save(newStation);
+//                    message = "The firestation number " + firestationId + " have been created,\n" +
+//                            " the address \"" + address + "\" have been added to this firestation.";
+//                    log.info(message);
+//                    log.debug("The function addNewMapping in FirestationService is ending, a firestation have been created and an address have been added to the new firestation.");
+//                }
+//                return message;
+//            } catch (NullPointerException exception) {
+//                throw new NotRightFormatToPostException("There is something missing in the request :\nto post a new mapping there should be a \"firestationId\" and an \"address\" fields.\n");
+//            }
+//        } else {
+//            throw new NotRightFormatToPostException("There is something missing in the request :\nto post a new mapping there should be a \"firestationId\" and an \"address\" fields.\n");
+//        }
+//    }
 
     /**
      * Delete one firestation from its id, the firestation has to be empty (with no attached address) to be deleted

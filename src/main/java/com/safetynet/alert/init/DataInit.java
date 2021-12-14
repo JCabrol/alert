@@ -1,10 +1,9 @@
 package com.safetynet.alert.init;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.safetynet.alert.model.AttachedAddress;
-import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.Person;
+import com.safetynet.alert.model.*;
 import com.safetynet.alert.repository.FirestationRepository;
+import com.safetynet.alert.repository.MedicalRecordsRepository;
 import com.safetynet.alert.repository.PersonRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +25,18 @@ public class DataInit implements ApplicationRunner {
 
     private final PersonRepository personRepository;
     private final FirestationRepository firestationRepository;
+    private final MedicalRecordsRepository medicalRecordsRepository;
 
 
     @Autowired
-    public DataInit(PersonRepository personRepository, FirestationRepository firestationRepository) {
+    public DataInit(PersonRepository personRepository, FirestationRepository firestationRepository, MedicalRecordsRepository medicalRecordsRepository) {
         this.personRepository = personRepository;
         this.firestationRepository = firestationRepository;
+        this.medicalRecordsRepository = medicalRecordsRepository;
     }
 
-
-    @Override
     @Transactional
+    @Override
     public void run(ApplicationArguments args) {
 
         log.debug("DataInit is beginning.");
@@ -52,6 +52,7 @@ public class DataInit implements ApplicationRunner {
 
 
             if (jsonObject != null) {
+
                 //getting each person in the json file and create a person objet with information and save it into database
                 for (int numberOfPersons = 0; numberOfPersons < jsonObject.path("persons").size(); numberOfPersons++) {
                     Person person = new Person();
@@ -67,7 +68,7 @@ public class DataInit implements ApplicationRunner {
                 }
                 log.info("All the persons from data.json file have been registered in dataBase.\n");
 
-                //getting each the mapping firestation/address in the json file
+                //getting each mapping firestation/address in the json file
                 for (int numberOfAddresses = 0; numberOfAddresses < jsonObject.path("firestations").size(); numberOfAddresses++) {
                     int stationNumber = jsonObject.path("firestations").path(numberOfAddresses).path("station").asInt();
                     String address = jsonObject.path("firestations").path(numberOfAddresses).path("address").asText();
@@ -88,7 +89,42 @@ public class DataInit implements ApplicationRunner {
                     }
                 }
                 log.info("All the firestations with all their addresses from data.json file have been registered in dataBase.\n");
+
+                //getting each medical records in the json file
+                for (int numberOfMedicalRecords = 0; numberOfMedicalRecords < jsonObject.path("medicalrecords").size(); numberOfMedicalRecords++) {
+                    MedicalRecords medicalRecords = new MedicalRecords();
+                    String firstName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("firstName").asText();
+                    String lastName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("lastName").asText();
+                    Person personToUpdate;
+                    Optional<Person> person = personRepository.findByFirstNameAndLastName(firstName.toUpperCase(), lastName.toUpperCase());
+                    if (person.isPresent()) {
+                        personToUpdate = person.get();
+                        medicalRecords.addPerson(personToUpdate);
+                    } else {
+                        personToUpdate = new Person(firstName, lastName);
+                        medicalRecords.addPerson(personToUpdate);
+                    }
+                    String birthdate = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("birthdate").asText();
+                    medicalRecords.setBirthdate(birthdate);
+                    if (jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").size() != 0) {
+                        for (int numberOfMedication = 0; numberOfMedication < jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").size(); numberOfMedication++) {
+                            String medicationName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").get(numberOfMedication).asText();
+                            medicalRecords.addMedication(new Medication(medicationName));
+                        }
+                    }
+                    if (jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("allergies").size() != 0) {
+                        for (int numberOfAllergies = 0; numberOfAllergies < jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("allergies").size(); numberOfAllergies++) {
+                            String allergyName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("allergies").get(numberOfAllergies).asText();
+                            medicalRecords.addAllergy(new Allergy(allergyName));
+                        }
+                    }
+                    medicalRecordsRepository.save(medicalRecords);
+                    personRepository.save(personToUpdate);
+                    log.info("Medical records about " + firstName + " " + lastName + " have been created.\n");
+                }
+                log.info("All the medical records from data.json file have been registered in dataBase.\n");
             }
+            log.debug("The function DataInit is ending without any exception");
         } catch (Exception e) {
             log.error("Something went wrong while calling data.json file : " + e.getMessage() + "\n");
         }

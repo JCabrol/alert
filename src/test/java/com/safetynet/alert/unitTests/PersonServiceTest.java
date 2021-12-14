@@ -1,6 +1,7 @@
 package com.safetynet.alert.unitTests;
 
 import com.safetynet.alert.exceptions.*;
+import com.safetynet.alert.model.MedicalRecords;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
 import com.safetynet.alert.service.PersonService;
@@ -51,7 +52,7 @@ public class PersonServiceTest {
             //a list containing 3 persons has to be returned when the personRepository mock is called with the function findAll
             ArrayList<Person> AllPersonsTest = new ArrayList<>();
             for (int numberOfPersonsTest = 0; numberOfPersonsTest < 3; numberOfPersonsTest++) {
-                Person person = new Person(numberOfPersonsTest, "FIRSTNAME" + numberOfPersonsTest, "LASTNAME" + numberOfPersonsTest, numberOfPersonsTest + " main street", "CITY" + numberOfPersonsTest, 1000 * numberOfPersonsTest + 100 * numberOfPersonsTest + 10 * numberOfPersonsTest + numberOfPersonsTest, "" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + "-" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + "-" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest, "person" + numberOfPersonsTest + "@mail.com");
+                Person person = new Person(numberOfPersonsTest, "FIRSTNAME" + numberOfPersonsTest, "LASTNAME" + numberOfPersonsTest, numberOfPersonsTest + " main street", "CITY" + numberOfPersonsTest, 1000 * numberOfPersonsTest + 100 * numberOfPersonsTest + 10 * numberOfPersonsTest + numberOfPersonsTest, "" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + "-" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + "-" + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest + numberOfPersonsTest, "person" + numberOfPersonsTest + "@mail.com",new MedicalRecords());
                 AllPersonsTest.add(person);
             }
             when(personRepository.findAll()).thenReturn(AllPersonsTest);
@@ -92,7 +93,7 @@ public class PersonServiceTest {
             // GIVEN
             //a person with ID = 0 has to be returned when the personRepository mock is called with the function findById
             Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-                    "cityTest", 1111, "phoneNumberTest", "mailTest");
+                    "cityTest", 1111, "phoneNumberTest", "mailTest",new MedicalRecords());
             doReturn(Optional.of(person)).when(personRepository).findById(0);
             // WHEN
             //the tested function  getPersonById is called with parameter id = 0
@@ -130,7 +131,7 @@ public class PersonServiceTest {
             // GIVEN
             //a person with FirstNameTest and LastNameTest has to be returned when the personRepository mock is called with the function findById
             Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-                    "cityTest", 1111, "phoneNumberTest", "mailTest");
+                    "cityTest", 1111, "phoneNumberTest", "mailTest",new MedicalRecords());
             doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
             // WHEN
             //the tested function  getPersonByName is called with FirstNameTest and LastNameTest
@@ -170,7 +171,7 @@ public class PersonServiceTest {
             // GIVEN
             //a person with all information has to be returned when the personRepository mock is called with the function save
             Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-                    "cityTest", 1111, "phoneNumberTest", "mailTest");
+                    "cityTest", 1111, "phoneNumberTest", "mailTest",new MedicalRecords());
             doReturn(person).when(personRepository).save(any());
             // WHEN
             //the tested function createPerson is called
@@ -263,9 +264,9 @@ public class PersonServiceTest {
             // GIVEN
             //a person with all updatable information
             Person existingPerson = new Person(0, "FirstNameTest", "LastNameTest", "address test original",
-                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original");
+                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original",new MedicalRecords());
             Person personWithUpdatingInformation = new Person(1, "FirstNameTest", "LastNameTest", "address test changed",
-                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed");
+                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed",new MedicalRecords());
             doReturn(personWithUpdatingInformation).when(personRepository).save(any());
             // WHEN
             //the function updatePerson() is called
@@ -286,7 +287,7 @@ public class PersonServiceTest {
             // GIVEN
             //a person with all updatable information
             Person existingPerson = new Person(0, "FirstNameTest", "LastNameTest", "address test original",
-                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original");
+                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original",new MedicalRecords());
             Person personToUpdate = new Person();
             personToUpdate.setFirstName("FirstNameTest");
             personToUpdate.setLastName("LastNameTest");
@@ -314,7 +315,7 @@ public class PersonServiceTest {
             // a different firstName or lastName between the person to update and the given information to update
             Person person = new Person("FirstNameTest", "LastNameTest");
             Person personWithUpdatingInformation = new Person(1, "FirstNameTest2", "LastNameTest2", "address test changed",
-                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed");
+                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed",new MedicalRecords());
             doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
             // WHEN
             //the function updatePerson() is called
@@ -354,7 +355,7 @@ public class PersonServiceTest {
             // GIVEN
             // an existing person
             Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-                    "cityTest", 1111, "phoneNumberTest", "mailTest");
+                    "cityTest", 1111, "phoneNumberTest", "mailTest",new MedicalRecords());
             doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
             doNothing().when(personRepository).deleteById(any());
             // WHEN
