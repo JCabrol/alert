@@ -28,11 +28,12 @@ public class PersonController {
      * @return - An iterable object of persons fulfilled
      */
     @GetMapping("/person")
-    public ResponseEntity<Iterable<Person>> getAllPersons() {
+    public ResponseEntity<String> getAllPersons() {
         log.debug("The function getAllPersons in PersonController is beginning.");
         Iterable<Person> persons = personService.getPersons();
+        String result = persons.toString();
         log.debug("The function getAllPersons in PersonController is ending without any exception.");
-        return new ResponseEntity<>(persons, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**
@@ -42,15 +43,16 @@ public class PersonController {
      * @return the person object corresponding to the first name and last name or NULL if the person wasn't found
      */
     @GetMapping("/person/{firstName}/{lastName}")
-    public ResponseEntity<Person> getPersonByName(@PathVariable Map<String, String> pathVariables) {
+    public ResponseEntity<String> getPersonByName(@PathVariable Map<String, String> pathVariables) {
         log.debug("The function getPersonByName in PersonController is beginning.");
         String firstName = pathVariables.get("firstName");
         String lastName = pathVariables.get("lastName");
         log.debug("firstName and lastName attributes have been got from url.");
         Person personResearched = personService.getPersonByName(firstName, lastName);
+        String result = personResearched.toString();
         log.info("The person " + firstName.toUpperCase() + " " + lastName.toUpperCase() + " has been found. ");
         log.debug("The function getPersonByName in PersonController is ending without any exception.\n");
-        return new ResponseEntity<>(personResearched, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     /**

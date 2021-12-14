@@ -169,5 +169,23 @@ public class AlertExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(ex.getMessage());
         return buildResponseEntity(alertError);
     }
+
+    @ExceptionHandler(EmptyMedicalRecordsException.class)
+    protected ResponseEntity<Object> handleEmptyMedicalRecords(
+            EmptyMedicalRecordsException ex) {
+        AlertError alertError = new AlertError(NOT_FOUND);
+        alertError.setMessage(ex.getMessage());
+        log.error(ex.getMessage());
+        return buildResponseEntity(alertError);
+    }
+
+    @ExceptionHandler(MedicalRecordsNotFoundException.class)
+    protected ResponseEntity<Object> handleMedicalRecordsNotFound(
+            MedicalRecordsNotFoundException ex) {
+        AlertError alertError = new AlertError(NOT_FOUND);
+        alertError.setMessage(ex.getMessage());
+        log.error(ex.getMessage());
+        return buildResponseEntity(alertError);
+    }
 }
 

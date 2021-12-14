@@ -29,11 +29,13 @@ public class Firestation {
             fetch = FetchType.LAZY)
     List<AttachedAddress> attachedAddresses = new ArrayList<>();
 
+
     public void addAttachedAddress(AttachedAddress attachedAddress) {
         boolean addressAlreadyAttached = false;
-        for (int i = 0; i < attachedAddresses.size(); i++)
-            if (attachedAddresses.get(i).getAddress().equals(attachedAddress.getAddress())) {
+        for (AttachedAddress address : attachedAddresses)
+            if (address.getAddress().equals(attachedAddress.getAddress())) {
                 addressAlreadyAttached = true;
+                break;
             }
         if (!addressAlreadyAttached) {
             attachedAddresses.add(attachedAddress);
@@ -59,12 +61,12 @@ public class Firestation {
 
 
     public String toString() {
-        String result = "Firestation n°" + this.stationId + " :\n";
+        StringBuilder result = new StringBuilder("Firestation n°" + this.stationId + " :\n");
         if (attachedAddresses.isEmpty()) {
-            result = result + "There are no addresses attached to this firestation.\n";
+            result.append("There are no addresses attached to this firestation.\n");
         } else {
-            for (int i = 0; i < this.attachedAddresses.size(); i++)
-                result = result + "- " + this.attachedAddresses.get(i).getAddress() + "\n";
+            for (AttachedAddress attachedAddress : this.attachedAddresses)
+                result.append("- ").append(attachedAddress.getAddress()).append("\n");
         }
         return result + "\n";
     }

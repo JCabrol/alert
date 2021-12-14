@@ -76,9 +76,11 @@ public class FirestationController {
     public ResponseEntity<String> addMappingFirestationAddress(@RequestBody MappingFirestationAddress mappingFirestationAddress) {
         log.debug("The function addMappingFirestationAddress in FirestationController is beginning.");
         //getting parameters id and address from request's body and calling the function addNewMapping on this
+//
+//        String address = mappingFirestationAddress.getAddress();
+//        String result = firestationService.addNewMapping(id, address);
+        String result = firestationService.addNewMapping(mappingFirestationAddress);
         int id = mappingFirestationAddress.getFirestationId();
-        String address = mappingFirestationAddress.getAddress();
-        String result = firestationService.addNewMapping(id, address);
         //building a new location and putting it in the response's headers to transmit the created firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -109,7 +111,7 @@ public class FirestationController {
         try{
         firestationService.deleteAddress(address);}catch(NothingToDeleteException ignored){}
         //creating a new mapping with given firestation and address
-        firestationService.addNewMapping(id, address);
+        firestationService.addNewMapping(mappingFirestationAddress);
         //building a new location and putting it in the response's headers to transmit the updated firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

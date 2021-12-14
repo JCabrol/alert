@@ -3,10 +3,11 @@ package com.safetynet.alert.model;
 import lombok.*;
 
 import javax.persistence.*;
-
+import javax.transaction.Transactional;
+import java.util.Objects;
 
 @Entity
-@Table(name = "PERSONS")
+@Table(name = "PERSON")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -37,4 +38,33 @@ public class Person {
 
     private String mail;
 
+    @OneToOne(cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JoinColumn(name = "medical_id")
+    private MedicalRecords medicalRecords;
+
+
+    public MedicalRecords getMedicalRecords() {
+        return medicalRecords;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Person)) return false;
+        return (Objects.equals(id, ((Person) o).getId()));
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    public String toString() {
+        return "Name : " + this.firstName + " " + this.lastName + "\n" +
+                "Address : " + this.address + " - " +
+                this.zip + " " + this.city + "\n" +
+                "Phone number : " + this.phoneNumber + "\n" +
+                "Mail : " + this.mail + "\n" + "\n";
+    }
 }
