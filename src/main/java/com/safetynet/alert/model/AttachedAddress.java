@@ -16,15 +16,13 @@ public class AttachedAddress {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "address_id")
+    @Column(name = "ADDRESS_ID")
     private long addressId;
-
-    @Column(name = "address")
     private String address;
 
     @ManyToOne(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
-    @JoinColumn(name="station_id")
+    @JoinColumn(name="STATION_ID")
     private Firestation firestation;
 
     public AttachedAddress(String address){

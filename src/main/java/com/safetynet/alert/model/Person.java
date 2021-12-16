@@ -27,20 +27,24 @@ public class Person {
     @NonNull
     private String lastName;
 
+    @Column(name = "ADDRESS")
     private String address;
 
+    @Column(name = "CITY")
     private String city;
 
+    @Column(name = "ZIP")
     private int zip;
 
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
 
+    @Column(name = "MAIL")
     private String mail;
 
     @OneToOne(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
-    @JoinColumn(name = "medical_id")
+    @JoinColumn(name = "MEDICAL_ID")
     private MedicalRecords medicalRecords;
 
 

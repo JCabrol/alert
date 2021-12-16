@@ -1,6 +1,6 @@
 package com.safetynet.alert.controller;
 
-import com.safetynet.alert.model.MedicalRecordDTO;
+import com.safetynet.alert.model.DTO.MedicalRecordDTO;
 import com.safetynet.alert.model.MedicalRecords;
 import com.safetynet.alert.service.MedicalRecordsService;
 import lombok.extern.slf4j.Slf4j;

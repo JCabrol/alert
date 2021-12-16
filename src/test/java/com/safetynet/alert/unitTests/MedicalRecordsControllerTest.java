@@ -2,7 +2,7 @@ package com.safetynet.alert.unitTests;
 
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.*;
-import com.safetynet.alert.service.FirestationService;
+import com.safetynet.alert.model.DTO.MedicalRecordDTO;
 import com.safetynet.alert.service.MedicalRecordsService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;

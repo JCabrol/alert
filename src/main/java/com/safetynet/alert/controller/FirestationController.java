@@ -2,7 +2,7 @@ package com.safetynet.alert.controller;
 
 import com.safetynet.alert.exceptions.NothingToDeleteException;
 import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.MappingFirestationAddress;
+import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.service.FirestationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,19 +68,19 @@ public class FirestationController {
     /**
      * Create - Add a firestation or an address to a firestation
      *
-     * @param mappingFirestationAddress - An object which contains a firestation's number (int) and an address (String) which has to be attached to this firestation
+     * @param mappingFirestationAddressDTO - An object which contains a firestation's number (int) and an address (String) which has to be attached to this firestation
      * @return A String indicating the Firestation object saved
      */
     @PostMapping("/firestation")
     @Transactional
-    public ResponseEntity<String> addMappingFirestationAddress(@RequestBody MappingFirestationAddress mappingFirestationAddress) {
+    public ResponseEntity<String> addMappingFirestationAddress(@RequestBody MappingFirestationAddressDTO mappingFirestationAddressDTO) {
         log.debug("The function addMappingFirestationAddress in FirestationController is beginning.");
         //getting parameters id and address from request's body and calling the function addNewMapping on this
 //
 //        String address = mappingFirestationAddress.getAddress();
 //        String result = firestationService.addNewMapping(id, address);
-        String result = firestationService.addNewMapping(mappingFirestationAddress);
-        int id = mappingFirestationAddress.getFirestationId();
+        String result = firestationService.addNewMapping(mappingFirestationAddressDTO);
+        int id = mappingFirestationAddressDTO.getFirestationId();
         //building a new location and putting it in the response's headers to transmit the created firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -97,21 +97,21 @@ public class FirestationController {
     /**
      * Update - Update an address' firestation
      *
-     * @param mappingFirestationAddress - A string which is the address for which the firestation has to be changed
+     * @param mappingFirestationAddressDTO - A string which is the address for which the firestation has to be changed
      * @return A String indicating the firestation which is updated with the given address
      */
     @PutMapping("/firestation")
     @Transactional
-    public ResponseEntity<String> updateAddress(@RequestBody MappingFirestationAddress mappingFirestationAddress) {
+    public ResponseEntity<String> updateAddress(@RequestBody MappingFirestationAddressDTO mappingFirestationAddressDTO) {
         log.debug("The function updateAddressByFirestationId in FirestationController is beginning.");
         //getting parameters id and address from request's body and calling the function addNewMapping on this
-        int id = mappingFirestationAddress.getFirestationId();
-        String address = mappingFirestationAddress.getAddress();
+        int id = mappingFirestationAddressDTO.getFirestationId();
+        String address = mappingFirestationAddressDTO.getAddress();
         //deleting old mappings concerning the address to update
         try{
         firestationService.deleteAddress(address);}catch(NothingToDeleteException ignored){}
         //creating a new mapping with given firestation and address
-        firestationService.addNewMapping(mappingFirestationAddress);
+        firestationService.addNewMapping(mappingFirestationAddressDTO);
         //building a new location and putting it in the response's headers to transmit the updated firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

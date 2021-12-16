@@ -2,6 +2,7 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.*;
+import com.safetynet.alert.model.DTO.MedicalRecordDTO;
 import com.safetynet.alert.repository.MedicalRecordsRepository;
 import lombok.Getter;
 import lombok.Setter;

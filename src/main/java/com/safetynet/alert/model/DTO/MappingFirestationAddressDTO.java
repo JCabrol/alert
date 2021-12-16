@@ -1,4 +1,4 @@
-package com.safetynet.alert.model;
+package com.safetynet.alert.model.DTO;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MappingFirestationAddress {
+public class MappingFirestationAddressDTO {
     private int firestationId;
     private String address;
 }

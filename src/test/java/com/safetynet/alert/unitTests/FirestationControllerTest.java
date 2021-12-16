@@ -3,7 +3,7 @@ package com.safetynet.alert.unitTests;
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.AttachedAddress;
 import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.MappingFirestationAddress;
+import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.service.FirestationService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -178,7 +178,7 @@ public class FirestationControllerTest {
                 "THEN we should have an \"isCreated\" status, the expected message and the header should return the right url to find the firestation created.")
         public void addNewMappingTest() throws Exception {
             // GIVEN
-            doReturn("The test is OK!").when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doReturn("The test is OK!").when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(post("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -187,7 +187,7 @@ public class FirestationControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(content().string("The test is OK!"))
                     .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/firestation/1"));
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -196,7 +196,7 @@ public class FirestationControllerTest {
                 "THEN we should have an \"isBasRequest\" status and the response's body should contain the expected error message.")
         public void addNewMappingNotRightFormatToPostExceptionTest() throws Exception {
             // GIVEN
-            doThrow(NotRightFormatToPostException.class).when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doThrow(NotRightFormatToPostException.class).when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(post("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -204,7 +204,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string(""));
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -213,7 +213,7 @@ public class FirestationControllerTest {
                 "THEN we should have an \"isBasRequest\" status and the response's body should contain the expected error message.")
         public void addNewMappingAlreadyExistingTest() throws Exception {
             // GIVEN
-            doThrow(MappingAlreadyExistingException.class).when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doThrow(MappingAlreadyExistingException.class).when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(post("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -221,7 +221,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string(""));
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -237,7 +237,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct: please verify the request contains a body.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -253,7 +253,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct : the request's body should be in json.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -270,7 +270,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct : please verify the request's url.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
     }
@@ -287,7 +287,7 @@ public class FirestationControllerTest {
         public void updateAddressTest() throws Exception {
             // GIVEN
             doReturn("").when(firestationService).deleteAddress("address test");
-            doReturn("").when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doReturn("").when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(put("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -297,7 +297,7 @@ public class FirestationControllerTest {
                     .andExpect(content().string("The address address test have been updated to the firestation number 1."))
                     .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/firestation/1"));
             verify(firestationService, Mockito.times(1)).deleteAddress("address test");
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -307,7 +307,7 @@ public class FirestationControllerTest {
         public void updateAddressNotRightFormatToPostExceptionTest() throws Exception {
             // GIVEN
             doReturn("").when(firestationService).deleteAddress("address test");
-            doThrow(NotRightFormatToPostException.class).when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doThrow(NotRightFormatToPostException.class).when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(put("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -316,7 +316,7 @@ public class FirestationControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string(""));
             verify(firestationService, Mockito.times(1)).deleteAddress("address test");
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -326,7 +326,7 @@ public class FirestationControllerTest {
         public void updateAddressMappingAlreadyExistingTest() throws Exception {
             // GIVEN
             doReturn("").when(firestationService).deleteAddress("address test");
-            doThrow(MappingAlreadyExistingException.class).when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doThrow(MappingAlreadyExistingException.class).when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(put("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -335,7 +335,7 @@ public class FirestationControllerTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string(""));
             verify(firestationService, Mockito.times(1)).deleteAddress("address test");
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -345,7 +345,7 @@ public class FirestationControllerTest {
         public void updateAddressNothingToDeleteTest() throws Exception {
             // GIVEN
             doThrow(NothingToDeleteException.class).when(firestationService).deleteAddress("address test");
-            doReturn("").when(firestationService).addNewMapping(any(MappingFirestationAddress.class));
+            doReturn("").when(firestationService).addNewMapping(any(MappingFirestationAddressDTO.class));
             // WHEN
             mockMvc.perform(put("/firestation")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -355,7 +355,7 @@ public class FirestationControllerTest {
                     .andExpect(content().string("The address address test have been updated to the firestation number 1."))
                     .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/firestation/1"));
             verify(firestationService, Mockito.times(1)).deleteAddress("address test");
-            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(1)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -371,7 +371,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct: please verify the request contains a body.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -387,7 +387,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct : the request's body should be in json.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
 
         @Test
@@ -404,7 +404,7 @@ public class FirestationControllerTest {
                     // THEN
                     .andExpect(status().isBadRequest())
                     .andExpect(content().string("The request is not correct : please verify the request's url.\n"));
-            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddress.class));
+            verify(firestationService, Mockito.times(0)).addNewMapping(any(MappingFirestationAddressDTO.class));
         }
     }
 

@@ -16,11 +16,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "firestation")
+@Table(name = "FIRESTATION")
 public class Firestation {
 
     @Id
-    @Column(name = "station_id")
+    @Column(name = "STATION_ID")
     private int stationId;
 
     @OneToMany(mappedBy = "firestation",

@@ -3,7 +3,7 @@ package com.safetynet.alert.service;
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.AttachedAddress;
 import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.MappingFirestationAddress;
+import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.repository.FirestationRepository;
 import lombok.Getter;
 import lombok.Setter;
@@ -107,21 +107,21 @@ public class FirestationService {
     /**
      * Get firestations from one of theirs addresses
      *
-     * @param mappingFirestationAddress - the id of the firestation in which the address has to be added and the address to add
+     * @param mappingFirestationAddressDTO - the id of the firestation in which the address has to be added and the address to add
      * @return a String message indicating the effectuated operations: the number of the firestation created or updated and the address created within this firestation
      * @throws NotRightFormatToPostException   - when the mapping given in parameter doesn't contain required information
      * @throws MappingAlreadyExistingException - when the mapping given in parameter already exists
      */
     // public String addNewMapping(int firestationId, String address) throws NotRightFormatToPostException, MappingAlreadyExistingException {
-    public String addNewMapping(MappingFirestationAddress mappingFirestationAddress) throws NotRightFormatToPostException, MappingAlreadyExistingException {
+    public String addNewMapping(MappingFirestationAddressDTO mappingFirestationAddressDTO) throws NotRightFormatToPostException, MappingAlreadyExistingException {
         log.debug("The function addNewMapping in FirestationService is beginning.");
 
         String message;
-        if ((mappingFirestationAddress.getFirestationId() == 0) || (mappingFirestationAddress.getAddress() == null)) {
+        if ((mappingFirestationAddressDTO.getFirestationId() == 0) || (mappingFirestationAddressDTO.getAddress() == null)) {
             throw new NotRightFormatToPostException("There is something missing in the request :\nto post a new mapping there should be a \"firestationId\" and an \"address\" fields.\n");
         } else {
-            int id = mappingFirestationAddress.getFirestationId();
-            String address = mappingFirestationAddress.getAddress();
+            int id = mappingFirestationAddressDTO.getFirestationId();
+            String address = mappingFirestationAddressDTO.getAddress();
             Optional<Firestation> firestation = firestationRepository.findById(id);
             if (firestation.isPresent()) {
                 Firestation firestationWithNewAddress = firestation.get();

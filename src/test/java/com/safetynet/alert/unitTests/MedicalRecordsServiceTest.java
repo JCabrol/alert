@@ -2,6 +2,7 @@ package com.safetynet.alert.unitTests;
 
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.*;
+import com.safetynet.alert.model.DTO.MedicalRecordDTO;
 import com.safetynet.alert.repository.MedicalRecordsRepository;
 import com.safetynet.alert.service.MedicalRecordsService;
 import com.safetynet.alert.service.PersonService;

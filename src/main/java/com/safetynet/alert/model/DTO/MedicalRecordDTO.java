@@ -1,4 +1,4 @@
-package com.safetynet.alert.model;
+package com.safetynet.alert.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

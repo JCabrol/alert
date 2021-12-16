@@ -19,15 +19,15 @@ public class Medication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "medication_id")
+    @Column(name = "MEDICATION_ID")
     private long medicationId;
 
-    @Column(name = "medication_name")
+    @Column(name = "MEDICATION_NAME")
     private String medicationName;
 
     @ManyToOne(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
-    @JoinColumn(name="medical_id")
+    @JoinColumn(name="MEDICAL_ID")
     private MedicalRecords medicalRecords;
 
     public Medication(String medicationName){

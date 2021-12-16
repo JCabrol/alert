@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Profile("!test")
@@ -106,6 +107,11 @@ public class DataInit implements ApplicationRunner {
                     }
                     String birthdate = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("birthdate").asText();
                     medicalRecords.setBirthdate(birthdate);
+                    int birthdateMonth = Integer.parseInt(birthdate.substring(0, 2));
+                    int birthdateDay = Integer.parseInt(birthdate.substring(3, 5));
+                    int birthdateYear = Integer.parseInt(birthdate.substring(6, 10));
+                    LocalDate birthdate2 = LocalDate.of(birthdateYear, birthdateMonth, birthdateDay);
+                    medicalRecords.setBirthdate2(birthdate2);
                     if (jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").size() != 0) {
                         for (int numberOfMedication = 0; numberOfMedication < jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").size(); numberOfMedication++) {
                             String medicationName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("medications").get(numberOfMedication).asText();

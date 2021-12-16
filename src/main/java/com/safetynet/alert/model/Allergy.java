@@ -19,15 +19,15 @@ public class Allergy {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "allergy_id")
+    @Column(name = "ALLERGY_ID")
     private long allergyId;
 
-    @Column(name = "allergy_name")
+    @Column(name = "ALLERGY_NAME")
     private String allergyName;
 
     @ManyToOne(cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
-    @JoinColumn(name="medical_id")
+    @JoinColumn(name="MEDICAL_ID")
     private MedicalRecords medicalRecords;
 
     public Allergy(String allergy){

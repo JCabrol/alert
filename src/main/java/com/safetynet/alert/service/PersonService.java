@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Getter
@@ -44,9 +45,9 @@ public class PersonService {
      *
      * @return an iterable containing all the persons presents in data
      */
-    public Iterable<Person> getPersons() throws EmptyPersonsException {
+    public List<Person> getPersons() throws EmptyPersonsException {
         log.debug("The function getPersons in PersonService is beginning.");
-        Iterable<Person> allPersons = personRepository.findAll();
+       List<Person> allPersons = (List<Person>) personRepository.findAll();
         if (allPersons.iterator().hasNext()) {
             log.debug("The function getPersons in PersonService is ending. Some persons were found.");
             return allPersons;
@@ -213,4 +214,9 @@ public class PersonService {
     public boolean existPersonByName(String firstName, String lastName) {
         return personRepository.findByFirstNameAndLastName(firstName, lastName).isPresent();
     }
+
+    public List<Person> getPersonsByAddress(String address) {
+        return personRepository.findByAddress(address);
+    }
+
 }

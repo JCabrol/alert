@@ -3,7 +3,7 @@ package com.safetynet.alert.unitTests;
 import com.safetynet.alert.exceptions.*;
 import com.safetynet.alert.model.AttachedAddress;
 import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.MappingFirestationAddress;
+import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.repository.FirestationRepository;
 import com.safetynet.alert.service.FirestationService;
 import lombok.extern.slf4j.Slf4j;
@@ -337,7 +337,7 @@ public class FirestationServiceTest {
             doReturn(Optional.of(firestation)).when(firestationRepository).findById(1);
             // WHEN
             //the tested function  getFirestationById is called with parameter id = 1
-            String result = firestationService.addNewMapping(new MappingFirestationAddress(1, "address test"));
+            String result = firestationService.addNewMapping(new MappingFirestationAddressDTO(1, "address test"));
             // THEN
             //the firestation should be found
             assertThat(result).isEqualTo("The firestation number 1 was already existing,\n" +
@@ -358,7 +358,7 @@ public class FirestationServiceTest {
             when(firestationRepository.findById(1)).thenReturn(Optional.empty());
             // WHEN
             //the tested function  getFirestationById is called with parameter id = 1
-            String result = firestationService.addNewMapping(new MappingFirestationAddress(1, "address test"));
+            String result = firestationService.addNewMapping(new MappingFirestationAddressDTO(1, "address test"));
             // THEN
             //the firestation should be found
             assertThat(result).isEqualTo("The firestation number 1 have been created,\n" +
@@ -382,7 +382,7 @@ public class FirestationServiceTest {
             //the tested function  getFirestationById is called with parameter id = 1
             // THEN
             //the firestation should be found
-            assertThrows(MappingAlreadyExistingException.class, () -> firestationService.addNewMapping(new MappingFirestationAddress(1, "address test")));
+            assertThrows(MappingAlreadyExistingException.class, () -> firestationService.addNewMapping(new MappingFirestationAddressDTO(1, "address test")));
             verify(firestationRepository, Mockito.times(0)).save(any());
             verify(firestationRepository, Mockito.times(1)).findById(1);
         }
@@ -398,7 +398,7 @@ public class FirestationServiceTest {
             //the tested function  getFirestationById is called with parameter id = 1
             // THEN
             //the firestation should be found
-            MappingFirestationAddress mapping = new MappingFirestationAddress();
+            MappingFirestationAddressDTO mapping = new MappingFirestationAddressDTO();
             assertThrows(NotRightFormatToPostException.class, () -> firestationService.addNewMapping(mapping));
             verify(firestationRepository, Mockito.times(0)).save(any());
             verify(firestationRepository, Mockito.times(0)).findById(anyInt());

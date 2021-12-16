@@ -12,6 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 
@@ -30,7 +31,7 @@ public class PersonController {
     @GetMapping("/person")
     public ResponseEntity<String> getAllPersons() {
         log.debug("The function getAllPersons in PersonController is beginning.");
-        Iterable<Person> persons = personService.getPersons();
+        List<Person> persons = personService.getPersons();
         String result = persons.toString();
         log.debug("The function getAllPersons in PersonController is ending without any exception.");
         return new ResponseEntity<>(result, HttpStatus.OK);

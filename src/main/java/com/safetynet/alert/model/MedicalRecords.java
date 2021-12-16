@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,16 +19,19 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "medical_records")
+@Table(name = "MEDICAL_RECORDS")
 public class MedicalRecords {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "medical_id")
+    @Column(name = "MEDICAL_ID")
     private int medicalId;
 
-    @Column(name = "birthdate")
+    @Column(name = "BIRTHDATE")
     private String birthdate;
+
+    @Column(name = "BIRTHDATE2")
+    private LocalDate birthdate2;
 
     @OneToOne(mappedBy = "medicalRecords",
             cascade = CascadeType.ALL,
