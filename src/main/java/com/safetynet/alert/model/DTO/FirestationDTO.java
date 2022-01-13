@@ -9,11 +9,9 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class FirestationInfoDTO {
-    private int stationId;
-    private int numberOfChildren;
-    private int numberOfAdults;
-    private List<PersonFirestationDTO> personsCoveredByStation;
+@NoArgsConstructor
+public class FirestationDTO {
+   private int firestationNumber;
+   private List<String> addressesList;
 }

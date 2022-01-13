@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -30,7 +32,7 @@ public class AlertExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        String errorMessage = "The request is not correct: please verify the request contains a body.\n";
+        String errorMessage = "The request is not correct: please verify the request's body.\n";
         log.error(errorMessage);
         return buildResponseEntity(new AlertError(HttpStatus.BAD_REQUEST, errorMessage));
     }
@@ -51,7 +53,6 @@ public class AlertExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new AlertError(HttpStatus.BAD_REQUEST, errorMessage));
     }
 
-
     @ExceptionHandler(PersonNotFoundException.class)
     protected ResponseEntity<Object> handlePersonNotFound(
             PersonNotFoundException ex) {
@@ -69,15 +70,6 @@ public class AlertExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(ex.getMessage());
         return buildResponseEntity(alertError);
     }
-
-//    @ExceptionHandler(NullPointerException.class)
-//    protected ResponseEntity<Object> handleNullPointer(
-//            NullPointerException ex) {
-//        AlertError alertError = new AlertError(BAD_REQUEST);
-//        alertError.setMessage(ex.getMessage());
-//        log.error(ex.getMessage());
-//        return buildResponseEntity(alertError);
-//    }
 
     @ExceptionHandler(EmptyPersonsException.class)
     protected ResponseEntity<Object> handleEmptyPersons(
@@ -185,6 +177,25 @@ public class AlertExceptionHandler extends ResponseEntityExceptionHandler {
         AlertError alertError = new AlertError(NOT_FOUND);
         alertError.setMessage(ex.getMessage());
         log.error(ex.getMessage());
+        return buildResponseEntity(alertError);
+    }
+
+    @ExceptionHandler(AddressNotFoundException.class)
+    protected ResponseEntity<Object> handleAddressNotFound(
+            AddressNotFoundException ex) {
+        AlertError alertError = new AlertError(NOT_FOUND);
+        alertError.setMessage(ex.getMessage());
+        log.error(ex.getMessage());
+        return buildResponseEntity(alertError);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<Object> handleConstraintViolation(
+            ConstraintViolationException ex) {
+        AlertError alertError = new AlertError(BAD_REQUEST);
+        String message = "There is something wrong in the given data :\n" + ex.getConstraintViolations().stream().map(constraintViolation -> "- " + constraintViolation.getMessageTemplate() + "\n").collect(Collectors.joining());
+        alertError.setMessage(message);
+        log.error(message);
         return buildResponseEntity(alertError);
     }
 }

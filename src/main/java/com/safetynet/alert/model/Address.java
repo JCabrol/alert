@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,11 +25,12 @@ public class Address {
     @Column(name = "ADDRESS_ID")
     private int addressId;
 
-    @Column(name = "STREET_NAME_AND_NUMBER")
-    private String streetNameAndNumber;
+    @Column(name = "STREET")
+    private String street;
 
     @Column(name = "ZIP")
-    private int zip;
+    @Size(min = 5, max = 5, message = "The zip should contains 5 characters.")
+    private String zip;
 
     @Column(name = "CITY")
     private String city;
@@ -43,4 +45,17 @@ public class Address {
             fetch = FetchType.LAZY)
     @JoinColumn(name="STATION_ID")
     private Firestation firestation;
+
+    public Address(String street, String zip, String city){
+        this.street = street;
+        this.zip=zip;
+        this.city=city;
+    }
+
+    public void addPerson(Person person) {
+        this.personList.add(person);
+        person.setAddress(this);
+    }
+
+
 }

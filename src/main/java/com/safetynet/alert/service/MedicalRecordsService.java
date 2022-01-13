@@ -1,30 +1,14 @@
 package com.safetynet.alert.service;
 
 import com.safetynet.alert.exceptions.*;
-import com.safetynet.alert.model.*;
 import com.safetynet.alert.model.DTO.MedicalRecordDTO;
-import com.safetynet.alert.repository.MedicalRecordsRepository;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.safetynet.alert.model.MedicalRecords;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
-@Getter
-@Setter
-
 @Service
-@Slf4j
-public class MedicalRecordsService {
-
-    @Autowired
-    private MedicalRecordsRepository medicalRecordsRepository;
-
-    @Autowired
-    private PersonService personService;
+public interface MedicalRecordsService {
 
     /**
      * Get all the medical records presents in data
@@ -32,33 +16,15 @@ public class MedicalRecordsService {
      * @return a list containing all the medical records
      * @throws EmptyMedicalRecordsException - when there are no medical records found
      */
-    public List<MedicalRecords> getMedicalRecords() throws EmptyMedicalRecordsException {
-        log.debug("The function getMedicalRecords in MedicalRecordsService is beginning.");
-        List<MedicalRecords> allMedicalRecords = (List<MedicalRecords>) medicalRecordsRepository.findAll();
-        if (!allMedicalRecords.isEmpty()) {
-            log.debug("The function getMedicalRecords in MedicalRecordsService is ending. Some medical records were found.");
-            return allMedicalRecords;
-        } else {
-            log.debug("The function getMedicalRecords in MedicalRecordsService is ending without founding any medical record.");
-            throw new EmptyMedicalRecordsException("There are no medical records registered.\n");
-        }
-    }
+    List<MedicalRecordDTO> getMedicalRecords() throws EmptyMedicalRecordsException;
 
     /**
-     * Create a String containing information about medicalRecords in a list
+     * Create a MedicalRecordDTO object containing information about medicalRecords
      *
-     * @param medicalRecordsList - a list of medical records
+     * @param medicalRecords - a medical records
      * @return a String with all information about the medical records presents in the list
      */
-    public String medicalRecordsToString(List<MedicalRecords> medicalRecordsList) {
-        log.debug("The function medicalRecordsToString in MedicalRecordsService is beginning.");
-        StringBuilder result = new StringBuilder();
-        for (MedicalRecords medicalRecords : medicalRecordsList) {
-            result.append(medicalRecords.toString());
-        }
-        log.debug("The function medicalRecordsToString in MedicalRecordsService is ending without any exception.");
-        return result.toString();
-    }
+    MedicalRecordDTO transformMedicalRecordsToMedicalRecordDTO(MedicalRecords medicalRecords);
 
     /**
      * Get person's medical records having his first name and his last name
@@ -67,63 +33,9 @@ public class MedicalRecordsService {
      * @param lastName  - a String which is the last name of the person whose medical records is researched
      * @return MedicalRecords object concerning the researched person
      */
-    public MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws MedicalRecordsNotFoundException {
-        log.debug("The function getMedicalRecordsByName in MedicalRecordsService is beginning.");
-        Person person = personService.getPersonByName(firstName, lastName);
-        if (person.getMedicalRecords() != null) {
-            MedicalRecords medicalRecords = person.getMedicalRecords();
-            log.debug("The function getMedicalRecordsByName in MedicalRecordsService is ending without any exception.");
-            return medicalRecords;
-        } else {
-            throw new MedicalRecordsNotFoundException("There is no medical records found for the person " + firstName + " " + lastName + ".\n");
-        }
-    }
+    MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws MedicalRecordsNotFoundException;
 
-    public MedicalRecords addNewMedicalRecords(MedicalRecordDTO medicalRecords) throws NotRightFormatToPostException {
-        log.debug("The function addNewMedicalRecords in MedicalRecordsService is beginning.");
-        //if there's no first name and last name an exception is thrown
-        String firstName = medicalRecords.getFirstName();
-        String lastName = medicalRecords.getLastName();
-        if ((firstName == null) || (lastName == null)) {
-            throw new NotRightFormatToPostException("To add new medical records, the body's request should contains, at least, a \"firstName\" and a \"lastName\" fields.");
-        } else {
-            MedicalRecords medicalRecordsToSave;
-            Person person;
-            //verifying the researched person is existing
-            try {
-                person = personService.getPersonByName(firstName, lastName);
-                //if the person already have medical records, they are selected to be replaced
-                if (person.getMedicalRecords() != null) {
-                    medicalRecordsToSave = person.getMedicalRecords();
-                    //if the person doesn't have medical records, they are created and attached to the person
-                } else {
-                    medicalRecordsToSave = new MedicalRecords();
-                    medicalRecordsToSave.addPerson(person);
-                }
-                //if the person doesn't exist, it's created and medical records are created and attached to this new person
-            } catch (PersonNotFoundException ex) {
-                person = new Person(firstName.toUpperCase(), lastName.toUpperCase());
-                medicalRecordsToSave = new MedicalRecords();
-                medicalRecordsToSave.addPerson(person);
-            }
-            //putting birthdate to medical records
-            String birthdate = medicalRecords.getBirthdate();
-            medicalRecordsToSave.setBirthdate(birthdate);
-            //clearing medications (if not empty) and putting new ones
-            medicalRecordsToSave.getMedications().clear();
-            for (String medication : medicalRecords.getMedications()) {
-                medicalRecordsToSave.addMedication(new Medication(medication));
-            }
-            //clearing allergies (if not empty) and putting new ones
-            medicalRecordsToSave.getAllergies().clear();
-            for (String allergy : medicalRecords.getAllergies()) {
-                medicalRecordsToSave.addAllergy(new Allergy(allergy));
-            }
-            //saving new medical records and returning it
-            medicalRecordsRepository.save(medicalRecordsToSave);
-            return medicalRecordsToSave;
-        }
-    }
+    MedicalRecords addNewMedicalRecords(MedicalRecordDTO medicalRecords) throws NotRightFormatToPostException;
 
     /**
      * Update person's medical records having his first name and his last name and information to update
@@ -136,68 +48,8 @@ public class MedicalRecordsService {
      * @throws NothingToUpdateException  - when there are no information to update in the medicalRecordDTO
      * @throws PersonNotFoundException   - when no person is found with the given firstName and lastName
      */
-    public String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, PersonNotFoundException {
-        log.debug("The function updateMedicalRecords in MedicalRecordsService is beginning.");
-        //getting the person concerned using firstName and lastName
-        String upperCaseFirstName = firstName.toUpperCase();
-        String upperCaseLastName = lastName.toUpperCase();
-        Person personToUpdateMedicals = personService.getPersonByName(upperCaseFirstName, upperCaseLastName);
-        //if there's a different firstName or lastName in the MedicalRecordDTO information an exception is thrown
-        String firstNameNew = medicalRecordDTO.getFirstName();
-        String lastNameNew = medicalRecordDTO.getLastName();
-        if (((firstNameNew != null) && (!(firstNameNew.toUpperCase()).equals(upperCaseFirstName))) || ((lastNameNew != null) && (!lastNameNew.toUpperCase().equals(upperCaseLastName)))) {
-            log.debug("The function updateMedicalRecords in MedicalrecordsService is ending without updating anything.");
-            throw new NotTheSamePersonException("It's not possible to update first name or last name.");
-        }
-        //getting person's medical records. If it doesn't exist creating some and attaching it to the person
-        MedicalRecords medicalRecords = personToUpdateMedicals.getMedicalRecords();
-        if (medicalRecords == null) {
-            medicalRecords = new MedicalRecords();
-            medicalRecords.addPerson(personToUpdateMedicals);
-        }
-        //using a boolean and a String to remember if there are changes and which ones
-        boolean updated = false;
-        String itemsChanged = "";
-        //if there's a birthdate in the MedicalRecordDTO information, it's set to the person's medical records
-        String birthdate = medicalRecordDTO.getBirthdate();
-        if (birthdate != null) {
-            medicalRecords.setBirthdate(birthdate);
-            updated = true;
-            itemsChanged = itemsChanged + "- the birthdate : " + birthdate + "\n";
-        }
-        //if there are medications in the MedicalRecordDTO information, older medications are cleared and new ones are set to the person's medical records
-        List<String> medications = medicalRecordDTO.getMedications();
-        if (!medications.equals(Collections.emptyList())) {
-            medicalRecords.getMedications().clear();
-            for (String medication : medications) {
-                medicalRecords.addMedication(new Medication(medication));
-            }
-            updated = true;
-            itemsChanged = itemsChanged + "- the medications : " + medications + "\n";
-        }
-        //if there are allergies in the MedicalRecordDTO information, older allergies are cleared and new ones set to the person's medical records
-        List<String> allergies = medicalRecordDTO.getAllergies();
-        if (!allergies.equals(Collections.emptyList())) {
-            medicalRecords.getAllergies().clear();
-            for (String allergy : allergies) {
-                medicalRecords.addAllergy(new Allergy(allergy));
-            }
-            updated = true;
-            itemsChanged = itemsChanged + "- the allergies : " + allergies + "\n";
-        }
-        //if there are changes, they are registered and a String containing changed information is returned
-        if (updated) {
-            medicalRecordsRepository.save(medicalRecords);
-            String updatingMessage = "The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " have been updated with following items :\n" + itemsChanged;
-            log.info(updatingMessage);
-            log.debug("The function updateMedicalRecords in MedicalRecordsService is ending with updating medical records.");
-            return updatingMessage;
-            //if nothing has been changed, an exception is thrown
-        } else {
-            log.debug("The function updateMedicalRecords in MedicalrecordsService is ending without updating anything.");
-            throw new NothingToUpdateException("The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " wasn't updated, there was no element to update.\n");
-        }
-    }
+    String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, PersonNotFoundException;
+
 
     /**
      * Delete medical records
@@ -208,26 +60,6 @@ public class MedicalRecordsService {
      * @throws NothingToDeleteException - when the medical records to delete don't exist anyway
      * @throws PersonNotFoundException  - when no person is found with the given firstName and lastName
      */
-
-    public String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, PersonNotFoundException {
-        log.debug("The function deleteMedicalRecords in MedicalRecordsService is beginning.");
-        //getting the person concerned using firstName and lastName
-        String upperCaseFirstName = firstName.toUpperCase();
-        String upperCaseLastName = lastName.toUpperCase();
-        Person personDeleteMedicalRecords = personService.getPersonByName(upperCaseFirstName, upperCaseLastName);
-        //getting person's medical records
-        MedicalRecords medicalRecordsToDelete = personDeleteMedicalRecords.getMedicalRecords();
-        //removing person's medical records if they're existing and returning confirmation message
-        if (medicalRecordsToDelete != null) {
-            medicalRecordsToDelete.removePerson(personDeleteMedicalRecords);
-            medicalRecordsRepository.delete(medicalRecordsToDelete);
-            String message = "The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " have been deleted.\n";
-            log.debug("The function deleteMedicalRecords in MedicalRecordsService is ending.");
-            return message;
-            //if person's medical records are empty an exception is thrown
-        } else {
-            throw new NothingToDeleteException("The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " weren't found, so it couldn't have been deleted.\n");
-        }
-    }
+    String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, PersonNotFoundException;
 }
 

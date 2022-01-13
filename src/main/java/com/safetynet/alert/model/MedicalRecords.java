@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,7 @@ public class MedicalRecords {
     private int medicalId;
 
     @Column(name = "BIRTHDATE")
-    private String birthdate;
-
-    @Column(name = "BIRTHDATE2")
-    private LocalDate birthdate2;
+    private LocalDate birthdate;
 
     @OneToOne(mappedBy = "medicalRecords",
             cascade = CascadeType.ALL,
@@ -111,31 +109,31 @@ public class MedicalRecords {
         return getClass().hashCode();
     }
 
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        if ((this.person == null)) {
-            result.append("Medical records number ").append(this.getMedicalId()).append(" :\n");
-        } else {
-            result.append("Medical records about ").append(this.person.getFirstName().toUpperCase()).append(" ").append(this.person.getLastName().toUpperCase()).append(" :\n");
-        }
-        result.append("Birthdate : ").append(this.birthdate).append("\n");
-        if (medications.isEmpty()) {
-            result.append("This person has no medication.\n");
-        } else {
-            result.append("Medications :\n");
-            for (Medication medication : this.medications) {
-                result.append("- ").append(medication.getMedicationName()).append("\n");
-            }
-        }
-        if (allergies.isEmpty()) {
-            result.append("This person has no allergy.\n");
-        } else {
-            result.append("Allergies :\n");
-            for (Allergy allergy : this.allergies) {
-                result.append("- ").append(allergy.getAllergyName()).append("\n");
-            }
-        }
-        result.append("\n");
-        return result.toString();
-    }
+//    public String toString() {
+//        StringBuilder result = new StringBuilder();
+//        if ((this.person == null)) {
+//            result.append("Medical records number ").append(this.getMedicalId()).append(" :\n");
+//        } else {
+//            result.append("Medical records about ").append(this.person.getFirstName().toUpperCase()).append(" ").append(this.person.getLastName().toUpperCase()).append(" :\n");
+//        }
+//        result.append("Birthdate : ").append(this.birthdate).append("\n");
+//        if (medications.isEmpty()) {
+//            result.append("This person has no medication.\n");
+//        } else {
+//            result.append("Medications :\n");
+//            for (Medication medication : this.medications) {
+//                result.append("- ").append(medication.getMedicationName()).append("\n");
+//            }
+//        }
+//        if (allergies.isEmpty()) {
+//            result.append("This person has no allergy.\n");
+//        } else {
+//            result.append("Allergies :\n");
+//            for (Allergy allergy : this.allergies) {
+//                result.append("- ").append(allergy.getAllergyName()).append("\n");
+//            }
+//        }
+//        result.append("\n");
+//        return result.toString();
+//    }
 }

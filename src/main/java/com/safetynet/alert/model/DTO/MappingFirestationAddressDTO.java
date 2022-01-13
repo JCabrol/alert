@@ -8,6 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MappingFirestationAddressDTO {
-    private int firestationId;
+    private int number;
     private String address;
+    private String zip;
+    private String city;
 }

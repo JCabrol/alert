@@ -3,6 +3,7 @@ package com.safetynet.alert.controller;
 import com.safetynet.alert.model.DTO.MedicalRecordDTO;
 import com.safetynet.alert.model.MedicalRecords;
 import com.safetynet.alert.service.MedicalRecordsService;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
+@Api("CRUD operations about medical records.")
 public class MedicalRecordsController {
 
     @Autowired
@@ -30,14 +32,11 @@ public class MedicalRecordsController {
      */
     @GetMapping("/medicalRecord")
     @Transactional
-    public ResponseEntity<String> getAllMedicalRecords() {
+    public ResponseEntity<List<MedicalRecordDTO>> getAllMedicalRecords() {
         log.debug("The function getAllMedicalRecords in MedicalRecordsController is beginning.");
-        //getting all medical records
-        List<MedicalRecords> medicalRecords = medicalRecordsService.getMedicalRecords();
-        //putting the result list to String to be readable by user
-        String result = medicalRecordsService.medicalRecordsToString(medicalRecords);
+        List<MedicalRecordDTO> medicalRecords = medicalRecordsService.getMedicalRecords();
         log.debug("The function getAllMedicalRecords in MedicalRecordsController is ending without any exception.\n");
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(medicalRecords, HttpStatus.OK);
     }
 
     /**
@@ -48,17 +47,16 @@ public class MedicalRecordsController {
      */
     @GetMapping("/medicalRecord/{firstName}/{lastName}")
     @Transactional
-    public ResponseEntity<String> getMedicalRecords(@PathVariable Map<String, String> pathVariables) {
+    public ResponseEntity<MedicalRecordDTO> getMedicalRecords(@PathVariable Map<String, String> pathVariables) {
         log.debug("The function getMedicalRecords in MedicalRecordsController is beginning.");
         //getting first name and last name from url
         String firstName = pathVariables.get("firstName");
         String lastName = pathVariables.get("lastName");
         //getting medical records corresponding to this person
         MedicalRecords medicalRecords = medicalRecordsService.getMedicalRecordsByName(firstName, lastName);
-        //putting the result to string to be readable by user
-        String result = medicalRecords.toString();
+        MedicalRecordDTO medicalRecordDTO = medicalRecordsService.transformMedicalRecordsToMedicalRecordDTO(medicalRecords);
         log.debug("The function getMedicalRecords in MedicalRecordsController is ending without any exception.\n");
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(medicalRecordDTO, HttpStatus.OK);
     }
 
     /**
@@ -88,7 +86,6 @@ public class MedicalRecordsController {
         return new ResponseEntity<>(result, httpHeaders, HttpStatus.CREATED);
     }
 
-
     /**
      * Update - Update medical records
      *
@@ -116,7 +113,6 @@ public class MedicalRecordsController {
         log.debug("The function updateMedicalRecords in MedicalRecordsController is ending without any exception.\n");
         return new ResponseEntity<>(result, httpHeaders, HttpStatus.OK);
     }
-
 
     /**
      * Delete - Delete medical records about a person

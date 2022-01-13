@@ -13,5 +13,5 @@ private String firstName;
 private String lastName;
 private int age;
 private String address;
-private List<PersonDTO> householdMembers;
+private List<String> householdMembers;
 }
