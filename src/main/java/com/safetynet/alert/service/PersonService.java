@@ -1,91 +1,84 @@
 package com.safetynet.alert.service;
 
+import com.safetynet.alert.exceptions.EmptyObjectException;
+import com.safetynet.alert.exceptions.NotRightFormatToPostException;
+import com.safetynet.alert.exceptions.ObjectAlreadyExistingException;
+import com.safetynet.alert.exceptions.ObjectNotFoundException;
+import com.safetynet.alert.model.DTO.PersonDTO;
 import com.safetynet.alert.model.Person;
-import com.safetynet.alert.repository.PersonRepository;
-import lombok.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
-@Getter
-@Setter
 
-@Service
-@Slf4j
-public class PersonService {
-    @Autowired
-    private PersonRepository personRepository;
+public interface PersonService {
 
     /**
-     * Read - Get one person from his id
+     * Get all the persons presents in data in PersonDTO object format
      *
-     * @param  id - an int which is the primary key of person object
-     * @return an optional person object corresponding to the id researched if it's found
+     * @return a list containing all the persons presents in data
      */
-    public Optional<Person> getPersonById(final int id) {
-        log.debug("The function getPersonById in PersonService is beginning.");
-        Optional<Person> personFound = personRepository.findById(id);
-        log.debug("The function getPersonById in PersonService is ending.");
-        return personFound;
-    }
+    List<PersonDTO> getPersonsDTO();
 
     /**
-     * Read - Get all the persons presents in data
+     * Get all the persons presents in data
      *
-     *
-     * @return an iterable containing all the persons presents in data
+     * @return a list containing all the persons presents in data
+     * @throws EmptyObjectException When the list is empty
      */
-    public Iterable<Person> getPersons() {
-        log.debug("The function getPersons in PersonService is beginning.");
-        Iterable<Person> allPersons = personRepository.findAll();
-        log.debug("The function getPersons in PersonService is ending.");
-        return allPersons;
-    }
+    List<Person> getPersons() throws EmptyObjectException;
 
     /**
-     * Read - delete one person from his id
+     * Get one person from his id
      *
-     * @param id - an id which is the primary key of the researched person
-     *
+     * @param id A String which is composed by the person's first name and last name
+     * @return a Person object which corresponds to researched person
+     * @throws ObjectNotFoundException When the researched person is not found
      */
-    public void deletePerson(final int id) {
-        log.debug("The function deletePerson in PersonService is beginning.");
-        personRepository.deleteById(id);
-        log.debug("The function deletePerson in PersonService is ending.");
-    }
+    Person getPersonById(String id) throws ObjectNotFoundException;
 
     /**
-     * Read - Save a person object in data
+     * Get one person from his first name and last name
      *
-     * @param person - A person object which has to be saved in data
+     * @param id A String which is composed by person's first name and last name
+     * @return a PersonDTO object which corresponds to researched person
+     * @throws ObjectNotFoundException When the researched person is not found
+     */
+    PersonDTO getPersonDTOById(String id) throws ObjectNotFoundException;
+
+    /**
+     * Save a person object in data
+     *
+     * @param person A PersonDTO object which has to be saved
      * @return the person object which was saved
+     * @throws ObjectAlreadyExistingException When the person to create already exists
+     * @throws NotRightFormatToPostException  When the first name or the last name is missing
      */
-    public Person savePerson(Person person) {
-        log.debug("The function savePerson in PersonService is beginning.");
-        person.setFirstName(person.getFirstName().toUpperCase());
-        person.setLastName(person.getLastName().toUpperCase());
-        if(person.getCity()!=null){
-        person.setCity(person.getCity().toUpperCase());}
-        Person savedPerson = personRepository.save(person);
-        log.debug("The function savePerson in PersonService is ending.");
-        return savedPerson;
-    }
+    Person createPerson(PersonDTO person) throws ObjectAlreadyExistingException, NotRightFormatToPostException;
+
 
     /**
-     * Read - Get one person from his first name and last name
+     * Save a person object in data
      *
-     * @param firstName - A String which is the first name of the researched person
-     * @param lastName - A String which is the last name of the researched person
-     * @return an optional person object which is the person researched if it's found
+     * @param personToUpdate - A person object which has to be saved in data
      */
-    public Optional<Person> getPersonByName(String firstName, String lastName) {
-        log.debug("The function getPersonByName in PersonService is beginning.");
-        String upperCaseFirstName = firstName.toUpperCase();
-        String upperCaseLastName = lastName.toUpperCase();
-        Optional<Person> personFound = personRepository.findByFirstNameAndLastName(upperCaseFirstName, upperCaseLastName);
-        log.debug("The function getPersonByName in PersonService is ending.");
-        return personFound;
-    }
+    Person updatePerson(PersonDTO personToUpdate, PersonDTO personWithNewInformation);
+
+    /**
+     * Delete one person from his id
+     *
+     * @param id - a String which is composed by the person's first name and last name
+     */
+    void deletePersonById(String id);
+
+    /**
+     * Get one person from his first name and last name
+     *
+     * @param firstName A String which is the first name of the researched person
+     * @param lastName  A String which is the last name of the researched person
+     * @return a Person object which corresponds to researched person
+     * @throws ObjectNotFoundException When the researched person is not found
+     */
+    List<Person> getPersonsByName(String firstName, String lastName) throws ObjectNotFoundException;
+
+
 }

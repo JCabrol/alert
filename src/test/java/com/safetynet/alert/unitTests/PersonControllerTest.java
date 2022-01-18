@@ -1,13 +1,15 @@
 package com.safetynet.alert.unitTests;
 
+import com.safetynet.alert.exceptions.*;
+import com.safetynet.alert.model.DTO.PersonDTO;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,13 +20,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -53,80 +55,94 @@ public class PersonControllerTest {
         @Test
         @DisplayName("GIVEN a non empty list of persons " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have an \"isOk\" status and the response's body should contain a JSon file with the persons and their informations.")
-        void getAllPersonsTest() throws Exception {
+                "THEN we should have an \"isOk\" status and the response's body should contain a JSon file with the persons and their information.")
+        void getAllPersonsNonEmptyTest() throws Exception {
             // GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            Person person2 = new Person(2, "FirstName2", "LastName2", "2 main street", "CITY2", 2222, "222-222-2222", "person2@mail.com");
-            doReturn(Lists.newArrayList(person1, person2)).when(personService).getPersons();
+            //a non-empty list of persons
+            PersonDTO person1 = new PersonDTO("FirstName1", "LastName1", "address test", "12345", "city test", "1234567890", "test@mail.com");
+            PersonDTO person2 = new PersonDTO("FirstName2", "LastName2", "address test 2", "12345", "city test", "9876543210", "test2@mail.com");
+            List<PersonDTO> personList = new ArrayList<>();
+            personList.add(person1);
+            personList.add(person2);
+            doReturn(personList).when(personService).getPersonsDTO();
             // WHEN
+            //we call the uri "/person"
             mockMvc.perform(get("/person"))
                     // THEN
+                    //we should have an "isOk" status and the response's body should contain a JSon file with the persons and their information.
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].firstName", is("FirstName1")))
                     .andExpect(jsonPath("$[0].lastName", is("LastName1")))
-                    .andExpect(jsonPath("$[0].address", is("1 main street")))
-                    .andExpect(jsonPath("$[0].city", is("CITY1")))
-                    .andExpect(jsonPath("$[0].zip", is(1111)))
-                    .andExpect(jsonPath("$[0].phoneNumber", is("111-111-1111")))
-                    .andExpect(jsonPath("$[0].mail", is("person1@mail.com")))
                     .andExpect(jsonPath("$[1].firstName", is("FirstName2")))
-                    .andExpect(jsonPath("$[1].lastName", is("LastName2")))
-                    .andExpect(jsonPath("$[1].address", is("2 main street")))
-                    .andExpect(jsonPath("$[1].city", is("CITY2")))
-                    .andExpect(jsonPath("$[1].zip", is(2222)))
-                    .andExpect(jsonPath("$[1].phoneNumber", is("222-222-2222")))
-                    .andExpect(jsonPath("$[1].mail", is("person2@mail.com")));
+                    .andExpect(jsonPath("$[1].lastName", is("LastName2")));
+            verify(personService, Mockito.times(1)).getPersonsDTO();
         }
 
         @Test
         @DisplayName("GIVEN an empty list of persons " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have a \"noContent\" status and the response's body should be empty.")
-        public void getAllPersonsWhenEmptyTest() throws Exception {
+                "THEN we should have a \"notFound\" status and the response's body should contain a String with the expected error message.")
+        public void getAllPersonsEmptyTest() throws Exception {
             //GIVEN
-            doReturn(Lists.newArrayList()).when(personService).getPersons();
+            // an empty list of persons
+            EmptyObjectException emptyObjectException = new EmptyObjectException("error message");
+            doThrow(emptyObjectException).when(personService).getPersonsDTO();
             //WHEN
+            //we call the uri "/person"
             mockMvc.perform(get("/person"))
                     //THEN
-                    .andExpect(status().isNoContent())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    //we should have a "notFound" status and the response's body should contain a String with the expected error message
+                    .andExpect(status().isNotFound())
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).getPersonsDTO();
         }
+
 
         @Test
         @DisplayName("GIVEN an existing person, " +
-                "WHEN we call the uri \"/person/{firstName}/{lastName}\", " +
-                "THEN when should have an \"isOk\" status and the person with all correct attributes in the response.")
-        public void getPersonByNameTest() throws Exception {
+                "WHEN we call the uri \"/person/{id}\", " +
+                "THEN we should have an \"isOk\" status and the person with all correct attributes in the response.")
+        public void getPersonExistingTest() throws Exception {
             // GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(person1)).when(personService).getPersonByName("FirstName1", "LastName1");
+            //an existing person
+            PersonDTO person1 = new PersonDTO("FirstName1", "LastName1", "address test", "12345", "city test", "1234567890", "test@mail.com");
+            doReturn(person1).when(personService).getPersonDTOById("idTest");
             // WHEN
-            mockMvc.perform(get("/person/{firstName}/{lastName}", "FirstName1", "LastName1"))
+            //we call the uri "/person/{id}"
+            mockMvc.perform(get("/person/{id}", "idTest"))
                     // THEN
+                    //we should have an "isOk" status and the person with all correct attributes in the response
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.id", is(1)))
                     .andExpect(jsonPath("$.firstName", is("FirstName1")))
                     .andExpect(jsonPath("$.lastName", is("LastName1")))
-                    .andExpect(jsonPath("$.address", is("1 main street")))
-                    .andExpect(jsonPath("$.city", is("CITY1")))
-                    .andExpect(jsonPath("$.zip", is(1111)))
-                    .andExpect(jsonPath("$.phoneNumber", is("111-111-1111")))
-                    .andExpect(jsonPath("$.mail", is("person1@mail.com")));
+                    .andExpect(jsonPath("$.address", is("address test")))
+                    .andExpect(jsonPath("$.city", is("city test")))
+                    .andExpect(jsonPath("$.zip", is("12345")))
+                    .andExpect(jsonPath("$.phoneNumber", is("1234567890")))
+                    .andExpect(jsonPath("$.mail", is("test@mail.com")));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
         }
 
         @DisplayName("GIVEN a non existing person, " +
-                "WHEN we call the uri \"/person/{firstName}/{lastName}\", " +
-                "THEN when should have an \"isNotFound\" status and an empty response.")
+                "WHEN we call the uri \"/person/{id}\", " +
+                "THEN when should have an \"isNotFound\" status and the response's body should contain a String with the expected error message.")
         @Test
-        public void getPersonByNameWithNonExistingPersonTest() throws Exception {
-            doReturn(Optional.empty()).when(personService).getPersonByName("FirstName1", "LastName1");
-            mockMvc.perform(get("/person/{firstName}/{lastName}", "FirstName1", "LastName1"))
+        public void getPersonNonExistingTest() throws Exception {
+            //GIVEN
+            //a non-existing person
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException("error message");
+            doThrow(objectNotFoundException).when(personService).getPersonDTOById("idTest");
+            //WHEN
+            //we call the uri "/person/{id}",
+            mockMvc.perform(get("/person/{id}", "idTest"))
+                    //THEN
+                    //the response's body should contain a String with the expected error message
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
         }
     }
 
@@ -136,96 +152,118 @@ public class PersonControllerTest {
     class PostTests {
 
         @Test
-        @DisplayName("GIVEN a person with all informations in the request's body, " +
+        @DisplayName("GIVEN a person with all information in the request's body, " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have an \"isCreated\" status and the header should return the right url to find the person created.")
-        public void addNewPersonTest() throws Exception {
+                "THEN we should have an \"isCreated\" status with the expected information message and the header should return the right url to find the person created.")
+        public void addNewPersonAllInformationTest() throws Exception {
             // GIVEN
-            String personToPost = "{\"firstName\":\"firstName1\",\"lastName\":\"lastName1\",\"address\":\"1 main street\"," +
-                    "\"city\":\"city1\",\"zip\":1111,\"phoneNumber\":\"111-111-1111\",\"mail\":\"person1@mail.com\"}";
-            Person personToReturn = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(personToReturn).when(personService).savePerson(any(Person.class));
+            //a person with all information in the request's body
+            String personToPost = "{\"firstName\":\"firstName1\",\"lastName\":\"lastName1\",\"address\":\"address test\"," +
+                    "\"city\":\"city test\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            doReturn(personToReturn).when(personService).createPerson(any(PersonDTO.class));
             // WHEN
+            //we call the uri "/person"
             mockMvc.perform(post("/person")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(personToPost))
-
                     // THEN
+                    //we should have an "isCreated" status with the expected information message and the header should return the right url to find the person created
                     .andExpect(status().isCreated())
-                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/person/FirstName1/LastName1"));
+                    .andExpect(content().string("The new person FirstName1 LastName1 have been created:\nhttp://localhost/person/idTest"))
+                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/person/idTest"));
+            verify(personService, Mockito.times(1)).createPerson(any(PersonDTO.class));
         }
 
         @Test
-        @DisplayName("GIVEN a person with only required informations (firstName and LastName) in the request's body, " +
+        @DisplayName("GIVEN a person to post with only required information (firstName and LastName), " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have an \"isCreated\" status and the header should return the right url to find the person created.")
+                "THEN we should have an \"isCreated\" status with the expected information message and the header should return the right url to find the person created.")
         public void addNewPersonWithOnlyFirstNameAndLastNameTest() throws Exception {
-            //GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
+            // GIVEN
+            //a person to post with only required information (firstName and LastName)
             String personToPost = "{\"firstName\":\"firstName1\",\"lastName\":\"lastName1\"}";
-            doReturn(person1).when(personService).savePerson(any(Person.class));
-            //WHEN
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            doReturn(personToReturn).when(personService).createPerson(any(PersonDTO.class));
+            // WHEN
+            //we call the uri "/person"
             mockMvc.perform(post("/person")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(personToPost))
                     // THEN
+                    //we should have an "isCreated" status with the expected information message and the header should return the right url to find the person created
                     .andExpect(status().isCreated())
-                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/person/FirstName1/LastName1"));
+                    .andExpect(content().string("The new person FirstName1 LastName1 have been created:\nhttp://localhost/person/idTest"))
+                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost/person/idTest"));
+            verify(personService, Mockito.times(1)).createPerson(any(PersonDTO.class));
         }
 
         @Test
-        @DisplayName("GIVEN a person with missing required informations (firstName or LastName) in the request's body, " +
+        @DisplayName("GIVEN a NotTheRightFormatToPostException thrown by the personService, " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have a \"badRequest\" status and the response should be empty.")
-        public void addNewPersonWithMissingRequiredInformationsTest() throws Exception {
-            //GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            String examplePersonJson = "{\"firstName\":\"firstName4\",\"address\":\"4 main street\"," +
-                    "\"city\":\"city4\",\"zip\":4444,\"phoneNumber\":\"444-444-4444\",\"mail\":\"person4@mail.com\"}";
-            doReturn(person1).when(personService).savePerson(any(Person.class));
-            //WHEN
+                "THEN we should have a \"badRequest\" status the response should contain the expected error message.")
+        public void addNewPersonNotRightFormatToPostExceptionTest() throws Exception {
+            // GIVEN
+            //a NotTheRightFormatToPostException thrown by the personService
+            String personToPost = "{\"firstName\":\"firstName1\",\"lastName\":\"lastName1\"}";
+            NotRightFormatToPostException notRightFormatToPostException = new NotRightFormatToPostException("error message");
+            doThrow(notRightFormatToPostException).when(personService).createPerson(any(PersonDTO.class));
+            // WHEN
+            //we call the uri "/person"
             mockMvc.perform(post("/person")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(examplePersonJson))
-                    //THEN
+                            .content(personToPost))
+                    // THEN
+                    //we should have a "badRequest" status the response should contain the expected error message.
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).createPerson(any(PersonDTO.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN an ObjectAlreadyExistingExceptionException thrown by the personService, " +
+                "WHEN we call the uri \"/person\", " +
+                "THEN we should have a \"badRequest\" status the response should contain the expected error message.")
+        public void addNewPersonObjectAlreadyExistingExceptionTest() throws Exception {
+            // GIVEN
+            //an ObjectAlreadyExistingException thrown by the personService
+            String personToPost = "{\"firstName\":\"firstName1\",\"lastName\":\"lastName1\"}";
+            ObjectAlreadyExistingException objectAlreadyExistingException = new ObjectAlreadyExistingException("error message");
+            doThrow(objectAlreadyExistingException).when(personService).createPerson(any(PersonDTO.class));
+            // WHEN
+            //we call the uri "/person"
+            mockMvc.perform(post("/person")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(personToPost))
+                    // THEN
+                    //we should have a "badRequest" status the response should contain the expected error message.
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).createPerson(any(PersonDTO.class));
         }
 
         @Test
         @DisplayName("GIVEN a request without body, " +
                 "WHEN we call the uri \"/person\", " +
-                "THEN we should have a \"badRequest\" status and the response should be empty.")
+                "THEN we should have a \"badRequest\" status and the response should contain the expected error message.")
         public void addNewPersonWithoutBodyTest() throws Exception {
             //GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(person1).when(personService).savePerson(any(Person.class));
+            //a request without body
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            doReturn(personToReturn).when(personService).createPerson(any(PersonDTO.class));
             //WHEN
+            //we call the uri "/person"
             mockMvc.perform(post("/person")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(""))
                     //THEN
+                    //we should have a "badRequest" status and the response should contain the expected error message
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$").doesNotExist());
-        }
-
-        @Test
-        @DisplayName("GIVEN a person with a firstName and lastName combination already existing in the request's body, " +
-                "WHEN we call the uri \"/person\", " +
-                "THEN we should have a \"badRequest\" status and the response should be empty.")
-        public void addNewPersonTestWhenAlreadyExisting() throws Exception {
-            //GIVEN
-            String personToPost = "{\"firstName\":\"FirstName1\",\"lastName\":\"LastName1\",\"address\":\"1 main street\"," +
-                    "\"city\":\"city1\",\"zip\":1111,\"phoneNumber\":\"111-111-1111\",\"mail\":\"person1@mail.com\"}";
-            Person personExisting = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(personExisting)).when(personService).getPersonByName("FIRSTNAME1", "LASTNAME1");
-            //WHEN
-            mockMvc.perform(post("/person")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(personToPost))
-                    //THEN
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("The request is not correct: please verify the request's body.\n"));
+            verify(personService, Mockito.times(0)).createPerson(any(PersonDTO.class));
         }
     }
 
@@ -235,119 +273,176 @@ public class PersonControllerTest {
     class PutTests {
 
         @Test
-        @DisplayName("GIVEN a person with all updatable informations in the request's body, " +
-                "WHEN we call the uri  \"/person/{firstName}/{lastName}\", " +
-                "THEN we should have an \"isOK\" status " +
-                "and the response should contain the right person with the same first name, last name and id " +
-                "but all other informations updated.")
-        public void putPersonWithAllUpdatesTest() throws Exception {
+        @DisplayName("GIVEN a person with all updatable information in the request's body, " +
+                "WHEN we call the uri  \"/person/{id}, " +
+                "THEN we should have an \"isOK\" status and the expected information message.")
+        public void updatePersonWithAllInformationTest() throws Exception {
             //GIVEN
-            String itemsToUpdate = "{\"address\":\"5 main street\",\"city\":\"city5\",\"zip\":5555,\"phoneNumber\":\"555-555-5555\",\"mail\":\"person5@mail.com\"}";
-            Person personToUpdate = new Person(1, "FirstName1", "LastName1", "1 main street", "city1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(personToUpdate)).when(personService).getPersonByName("FIRSTNAME1", "LASTNAME1");
-            doReturn(new Person()).when(personService).savePerson(any(Person.class));
+            //a person with all updatable information in the request's body
+            String itemsToUpdate = "{\"address\":\"address test\",\"city\":\"citytest\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            PersonDTO personDTO = new PersonDTO();
+            personToReturn.setId("idTest");
+            doReturn(personDTO).when(personService).getPersonDTOById("idTest");
+            doReturn(personToReturn).when(personService).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
             //WHEN
-            mockMvc.perform(put("/person/{firstName}/{lastName}", "FirstName1", "LastName1")
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(itemsToUpdate))
                     //THEN
+                    //we should have an "isOK" status and the expected information message
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(1)))
-                    .andExpect(jsonPath("$.firstName", is("FirstName1")))
-                    .andExpect(jsonPath("$.lastName", is("LastName1")))
-                    .andExpect(jsonPath("$.city", is("city5")))
-                    .andExpect(jsonPath("$.address", is("5 main street")))
-                    .andExpect(jsonPath("$.zip", is(5555)))
-                    .andExpect(jsonPath("$.phoneNumber", is("555-555-5555")))
-                    .andExpect(jsonPath("$.mail", is("person5@mail.com")));
+                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost:8080/person/idTest"))
+                    .andExpect(content().string("The person FirstName1 LastName1 have been updated:\nhttp://localhost:8080/person/idTest"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(1)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
         }
 
         @Test
-        @DisplayName("GIVEN a person with some updatable information in the request's body, " +
-                "WHEN we call the uri  \"/person/{firstName}/{lastName}\", " +
-                "THEN we should have an \"isOK\" status " +
-                "and the response should contain the right person with the same not updated information" +
-                "but all other information updated.")
-        public void putPersonWithOnlyAddressAndMailUpdatesTest() throws Exception {
+        @DisplayName("GIVEN a person with only some updatable information in the request's body, " +
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have an \"isOK\" status and the expected information message.")
+        public void updatePersonWithSomeInformationTest() throws Exception {
             //GIVEN
-            String itemsToUpdate = "{\"address\":\"5 main street\",\"mail\":\"person5@mail.com\"}";
-            Person personToUpdate = new Person(1, "FirstName1", "LastName1", "1 main street", "city1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(personToUpdate)).when(personService).getPersonByName("FIRSTNAME1", "LASTNAME1");
-            doReturn(new Person()).when(personService).savePerson(any(Person.class));
+            //a person with only some updatable information in the request's body
+            String itemsToUpdate = "{\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            PersonDTO personDTO = new PersonDTO();
+            personToReturn.setId("idTest");
+            doReturn(personDTO).when(personService).getPersonDTOById("idTest");
+            doReturn(personToReturn).when(personService).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
             //WHEN
-            mockMvc.perform(put("/person/{firstName}/{lastName}", "FirstName1", "LastName1")
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(itemsToUpdate))
                     //THEN
+                    //we should have an "isOK" status and the expected information message
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(1)))
-                    .andExpect(jsonPath("$.firstName", is("FirstName1")))
-                    .andExpect(jsonPath("$.lastName", is("LastName1")))
-                    .andExpect(jsonPath("$.city", is("city1")))
-                    .andExpect(jsonPath("$.address", is("5 main street")))
-                    .andExpect(jsonPath("$.zip", is(1111)))
-                    .andExpect(jsonPath("$.phoneNumber", is("111-111-1111")))
-                    .andExpect(jsonPath("$.mail", is("person5@mail.com")));
-        }
-
-        @Test
-        @DisplayName("GIVEN a person with one updatable information in the request's body, " +
-                "WHEN we call the uri  \"/person/{firstName}/{lastName}\", " +
-                "THEN we should have an \"isOK\" status " +
-                "and the response should contain the right person with the same not updated information" +
-                "but phoneNumber updated.")
-        public void putPersonWithOnlyPhoneNumberUpdateTest() throws Exception {
-            //GIVEN
-            String itemsToUpdate = "{\"phoneNumber\":\"555-555-5555\"}";
-            Person personToUpdate = new Person(1, "FirstName1", "LastName1", "1 main street", "city1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(personToUpdate)).when(personService).getPersonByName("FIRSTNAME1", "LASTNAME1");
-            doReturn(new Person()).when(personService).savePerson(any(Person.class));
-            //WHEN
-            mockMvc.perform(put("/person/{firstName}/{lastName}", "FirstName1", "LastName1")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(itemsToUpdate))
-                    //THEN
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(1)))
-                    .andExpect(jsonPath("$.firstName", is("FirstName1")))
-                    .andExpect(jsonPath("$.lastName", is("LastName1")))
-                    .andExpect(jsonPath("$.city", is("city1")))
-                    .andExpect(jsonPath("$.address", is("1 main street")))
-                    .andExpect(jsonPath("$.zip", is(1111)))
-                    .andExpect(jsonPath("$.phoneNumber", is("555-555-5555")))
-                    .andExpect(jsonPath("$.mail", is("person1@mail.com")));
+                    .andExpect(header().string(HttpHeaders.LOCATION, "http://localhost:8080/person/idTest"))
+                    .andExpect(content().string("The person FirstName1 LastName1 have been updated:\nhttp://localhost:8080/person/idTest"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(1)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
         }
 
         @Test
         @DisplayName("GIVEN a person non-existing in the request's url, " +
-                "WHEN we call the uri  \"/person/{firstName}/{lastName}\", " +
-                "THEN we should have an \"notFound\" status " +
-                "and the response's body should be empty.")
-        public void putPersonNonExistingTest() throws Exception {
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have an \"notFound\" status and the expected error message.")
+        public void updatePersonNonExistingTest() throws Exception {
             //GIVEN
-            String itemsToUpdate = "{\"address\":\"5 main street\",\"city\":\"city5\",\"zip\":5555,\"phoneNumber\":\"555-555-5555\",\"mail\":\"person5@mail.com\"}";
+            //a person non-existing in the request's url
+            String itemsToUpdate = "{\"address\":\"address test\",\"city\":\"citytest\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException("error message");
+            doThrow(objectNotFoundException).when(personService).getPersonDTOById("idTest");
+            doReturn(personToReturn).when(personService).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
             //WHEN
-            mockMvc.perform(put("/person/{firstName}/{lastName}", "FirstName5", "LastName5")
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(itemsToUpdate))
                     //THEN
+                    //we should have an "notFound" status and the expected error message
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(0)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN a NotTheSamePersonException returned by the personService, " +
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have an \"isConflict\" status and the expected error message.")
+        public void updatePersonNotTheSamePersonTest() throws Exception {
+            //GIVEN
+            //a NotTheSamePersonException returned by the personService
+            String itemsToUpdate = "{\"address\":\"address test\",\"city\":\"citytest\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            NotTheSamePersonException notTheSamePersonException = new NotTheSamePersonException("error message");
+            doThrow(notTheSamePersonException).when(personService).getPersonDTOById("idTest");
+            doReturn(personToReturn).when(personService).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
+            //WHEN
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(itemsToUpdate))
+                    //THEN
+                    //we should have an "isConflict" status and the expected error message
+                    .andExpect(status().isConflict())
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(0)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN a NothingToUpdateException returned by the personService, " +
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have an \"isBadRequest\" status and the expected error message.")
+        public void updatePersonNothingToUpdateTest() throws Exception {
+            //GIVEN
+            //a NothingToUpdateException returned by the personService
+            String itemsToUpdate = "{\"address\":\"address test\",\"city\":\"citytest\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+            Person personToReturn = new Person("FirstName1", "LastName1");
+            personToReturn.setId("idTest");
+            NothingToUpdateException nothingToUpdateException = new NothingToUpdateException("error message");
+            doThrow(nothingToUpdateException).when(personService).getPersonDTOById("idTest");
+            doReturn(personToReturn).when(personService).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
+            //WHEN
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(itemsToUpdate))
+                    //THEN
+                    //we should have an "isBadRequest" status and the expected error message
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(0)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
+        }
+
+        @Test
+        @DisplayName("GIVEN no id in the request's url, " +
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have a \"badRequest\" status and the expected error message.")
+        public void updatePersonNoUrlTest() throws Exception {
+            //GIVEN
+            //no id in the request's url
+            String itemsToUpdate = "{\"address\":\"address test\",\"city\":\"citytest\",\"zip\":\"12345\",\"phoneNumber\":\"1234567890\",\"mail\":\"test@mail.com\"}";
+
+            //WHEN
+            //we call the uri  "/person" without id
+            mockMvc.perform(put("/person")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(itemsToUpdate))
+                    //THEN
+                    //we should have a "badRequest" status and the expected error message
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("The request is not correct : please verify the request's url.\n"));
+            verify(personService, Mockito.times(0)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(0)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
         }
 
         @Test
         @DisplayName("GIVEN a request without body, " +
-                "WHEN we call the uri  \"/person/{firstName}/{lastName}\", " +
-                "THEN we should have an \"badRequest\" status " +
-                "and the response's body should be empty.")
-        public void putPersonWithNoBodyInformationsTest() throws Exception {
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have an \"badRequest\" status and the expected error message.")
+        public void updatePersonNoBodyTest() throws Exception {
             //GIVEN
+            //a request without body
             //WHEN
-            mockMvc.perform(put("/person/{firstName}/{lastName}", "FirstName1", "LastName1")
+            //we call the uri  "/person/{id}"
+            mockMvc.perform(put("/person/{id}", "idTest")
                             .contentType(MediaType.APPLICATION_JSON).content(""))
                     //THEN
+                    //we should have an "badRequest" status and the expected error message
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("The request is not correct: please verify the request's body.\n"));
+            verify(personService, Mockito.times(0)).getPersonDTOById("idTest");
+            verify(personService, Mockito.times(0)).updatePerson(any(PersonDTO.class), any(PersonDTO.class));
         }
     }
 
@@ -358,32 +453,54 @@ public class PersonControllerTest {
 
         @Test
         @DisplayName("GIVEN an existing person, " +
-                "WHEN we call the uri \"/person/{firstName}/{lastName}\", " +
-                "THEN when should have an \"isEmpty\" status and an empty response.")
-        public void deletePersonByNameTest() throws Exception {
+                "WHEN we call the uri \"/person/{id}\", " +
+                "THEN when should have an \"isOk\" status and the expected information message.")
+        public void deletePersonExistingTest() throws Exception {
             // GIVEN
-            Person person1 = new Person(1, "FirstName1", "LastName1", "1 main street", "CITY1", 1111, "111-111-1111", "person1@mail.com");
-            doReturn(Optional.of(person1)).when(personService).getPersonByName("FirstName1", "LastName1");
-            doNothing().when(personService).deletePerson(any(Integer.class));
+            doNothing().when(personService).deletePersonById("idTest");
             // WHEN
-            mockMvc.perform(delete("/person/{firstName}/{lastName}", "FirstName1", "LastName1"))
+            mockMvc.perform(delete("/person/{id}", "idTest"))
                     // THEN
-                    .andExpect(status().isNoContent())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("The person with id idTest has been deleted."));
+            verify(personService, Mockito.times(1)).deletePersonById("idTest");
         }
 
         @Test
         @DisplayName("GIVEN a non-existing person, " +
-                "WHEN we call the uri \"/person/{firstName}/{lastName}\", " +
-                "THEN when should have an \"isNotFound\" status and an empty response.")
-        public void deletePersonByNameNonExistingTest() throws Exception {
+                "WHEN we call the uri \"/person/{id}\", " +
+                "THEN when should have an \"isNotFound\" status and the expected error message.")
+        public void deletePersonNonExistingTest() throws Exception {
             // GIVEN
-            doReturn(Optional.empty()).when(personService).getPersonByName("FirstName1", "LastName1");
+            //a non-existing person
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException("error message");
+            doThrow(objectNotFoundException).when(personService).deletePersonById("idTest");
             // WHEN
-            mockMvc.perform(delete("/person/{firstName}/{lastName}", "FirstName1", "LastName1"))
+            // we call the uri "/person/{id}"
+            mockMvc.perform(delete("/person/{id}", "idTest"))
                     // THEN
+                    // when should have an "isNotFound" status and the expected error message
                     .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$").doesNotExist());
+                    .andExpect(content().string("error message"));
+            verify(personService, Mockito.times(1)).deletePersonById("idTest");
+        }
+
+        @Test
+        @DisplayName("GIVEN no id in the request's url, " +
+                "WHEN we call the uri  \"/person/{id}\", " +
+                "THEN we should have a \"badRequest\" status and the expected error message.")
+        public void updatePersonNoUrlTest() throws Exception {
+            //GIVEN
+            //no id in the request's url
+
+            //WHEN
+            //we call the uri  "/person" without id
+            mockMvc.perform(delete("/person"))
+                    //THEN
+                    //we should have a "badRequest" status and the expected error message
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("The request is not correct : please verify the request's url.\n"));
+            verify(personService, Mockito.times(0)).deletePersonById("idTest");
         }
     }
 }
