@@ -1,7 +1,11 @@
 package com.safetynet.alert.unitTests;
 
 import com.safetynet.alert.exceptions.*;
-import com.safetynet.alert.model.*;
+import com.safetynet.alert.model.Allergy;
+import com.safetynet.alert.model.DTO.MedicalRecordDTO;
+import com.safetynet.alert.model.MedicalRecords;
+import com.safetynet.alert.model.Medication;
+import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.MedicalRecordsRepository;
 import com.safetynet.alert.service.MedicalRecordsService;
 import com.safetynet.alert.service.PersonService;
@@ -17,10 +21,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
@@ -30,7 +36,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @Slf4j
 @ActiveProfiles("test")
 @DirtiesContext(classMode = AFTER_CLASS)
-@SpringBootTest(classes = MedicalRecordsService.class)
+@SpringBootTest
 public class MedicalRecordsServiceTest {
 
     @Autowired
@@ -42,37 +48,6 @@ public class MedicalRecordsServiceTest {
     @MockBean
     private PersonService personService;
 
-    @Nested
-    @DisplayName("getter tests:")
-    class GetMedicalRecordsRepositoryTest {
-
-        @DisplayName("GIVEN a medicalRecordsRepository set to a medicalRecordsService" +
-                "WHEN the getter getMedicalrecordsRepository() is called " +
-                "THEN it returns this medicalRecordsRepository.")
-        @Test
-        public void getMedicalRecordsRepositoryTest() {
-            //GIVEN
-            medicalRecordsService.setMedicalRecordsRepository(medicalRecordsRepository);
-            //WHEN
-            MedicalRecordsRepository medicalRecordsRepository2 = medicalRecordsService.getMedicalRecordsRepository();
-            //THEN
-            assertThat(medicalRecordsRepository2).isEqualTo(medicalRecordsRepository);
-        }
-
-        @DisplayName("GIVEN a PersonService set to a medicalRecordsService" +
-                "WHEN the getter getPersonService() is called " +
-                "THEN it returns this PersonService.")
-        @Test
-        public void getPersonServiceTest() {
-            //GIVEN
-            medicalRecordsService.setPersonService(personService);
-            //WHEN
-            PersonService personService2 = medicalRecordsService.getPersonService();
-            //THEN
-            assertThat(personService2).isEqualTo(personService);
-        }
-
-    }
 
     @Nested
     @DisplayName("getMedicalRecords() tests:")
@@ -85,38 +60,28 @@ public class MedicalRecordsServiceTest {
         public void getMedicalRecordsWhenNonEmptyTest() {
             //GIVEN
             //an existing list of medicalRecords
-            ArrayList<MedicalRecords> AllMedicalRecordsTest = new ArrayList<>();
-            for (int numberOfMedicalRecordsTest = 0; numberOfMedicalRecordsTest < 3; numberOfMedicalRecordsTest++) {
-                MedicalRecords medicalRecords = new MedicalRecords();
-                medicalRecords.setMedicalId(numberOfMedicalRecordsTest);
-                medicalRecords.addAllergy(new Allergy("allergy test " + numberOfMedicalRecordsTest));
-                medicalRecords.addMedication(new Medication("medication test " + numberOfMedicalRecordsTest));
-                medicalRecords.setBirthdate("01/01/200" + numberOfMedicalRecordsTest);
-                medicalRecords.addPerson(new Person("firstNameTest" + numberOfMedicalRecordsTest, "lastNameTest" + numberOfMedicalRecordsTest));
-                AllMedicalRecordsTest.add(medicalRecords);
-            }
-            when(medicalRecordsRepository.findAll()).thenReturn(AllMedicalRecordsTest);
+            MedicalRecords medicalRecords1 = new MedicalRecords();
+            MedicalRecords medicalRecords2 = new MedicalRecords();
+            Person person1 = new Person("firstNameTest1", "lastNameTest1");
+            Person person2 = new Person("firstNameTest2", "lastNameTest2");
+            medicalRecords1.addPerson(person1);
+            medicalRecords2.addPerson(person2);
+            LocalDate birthdate1 = LocalDate.of(1982, 11, 14);
+            LocalDate birthdate2 = LocalDate.of(2013, 4, 18);
+            medicalRecords1.setBirthdate(birthdate1);
+            medicalRecords2.setBirthdate(birthdate2);
+            List<MedicalRecords> medicalRecordsList = List.of(medicalRecords1, medicalRecords2);
+            doReturn(medicalRecordsList).when(medicalRecordsRepository).findAll();
             //WHEN
             //the tested function getMedicalRecords is called
-            List<MedicalRecords> result = medicalRecordsService.getMedicalRecords();
+            List<MedicalRecordDTO> result = medicalRecordsService.getMedicalRecords();
             //THEN
             //the same list of medicalRecords should be returned
-            assertThat(result.size()).isEqualTo(3);
-            assertThat(result.get(0).getMedicalId()).isEqualTo(0);
-            assertThat(result.get(0).getBirthdate()).isEqualTo("01/01/2000");
-            assertThat(result.get(0).getPerson().getFirstName()).isEqualTo("firstNameTest0");
-            assertThat(result.get(0).getPerson().getLastName()).isEqualTo("lastNameTest0");
-            assertThat(result.get(0).toString()).contains("allergy test 0", "medication test 0");
-            assertThat(result.get(1).getMedicalId()).isEqualTo(1);
-            assertThat(result.get(1).getBirthdate()).isEqualTo("01/01/2001");
-            assertThat(result.get(1).getPerson().getFirstName()).isEqualTo("firstNameTest1");
-            assertThat(result.get(1).getPerson().getLastName()).isEqualTo("lastNameTest1");
-            assertThat(result.get(1).toString()).contains("allergy test 1", "medication test 1");
-            assertThat(result.get(2).getMedicalId()).isEqualTo(2);
-            assertThat(result.get(2).getBirthdate()).isEqualTo("01/01/2002");
-            assertThat(result.get(2).getPerson().getFirstName()).isEqualTo("firstNameTest2");
-            assertThat(result.get(2).getPerson().getLastName()).isEqualTo("lastNameTest2");
-            assertThat(result.get(2).toString()).contains("allergy test 2", "medication test 2");
+            assertThat(result.size()).isEqualTo(2);
+            assertThat(result.get(0).getFirstName()).isEqualTo("firstNameTest1");
+            assertThat(result.get(1).getFirstName()).isEqualTo("firstNameTest2");
+            assertThat(result.get(0).getBirthdate()).isEqualTo("14-11-1982");
+            assertThat(result.get(1).getBirthdate()).isEqualTo("18-04-2013");
             verify(medicalRecordsRepository, Mockito.times(1)).findAll();
         }
 
@@ -132,11 +97,10 @@ public class MedicalRecordsServiceTest {
             // the tested function getMedicalRecords is called
             //THEN
             // an emptyMedicalrecordsException should be thrown
-            assertThrows(EmptyMedicalRecordsException.class, () -> medicalRecordsService.getMedicalRecords());
+            assertThrows(EmptyObjectException.class, () -> medicalRecordsService.getMedicalRecords());
             verify(medicalRecordsRepository, Mockito.times(1)).findAll();
         }
     }
-
 
     @Nested
     @DisplayName("getMedicalrecordsByName() tests:")
@@ -149,39 +113,44 @@ public class MedicalRecordsServiceTest {
         void getMedicalRecordsByNameTest() {
             // GIVEN
             //existing medicalRecords
+            String firstName = "firstNameTest";
+            String lastName = "lastNameTest";
             MedicalRecords medicalRecords = new MedicalRecords();
             medicalRecords.setMedicalId(1);
             medicalRecords.addAllergy(new Allergy("allergy test"));
             medicalRecords.addMedication(new Medication("medication test"));
-            medicalRecords.setBirthdate("01/01/2001");
-            Person personTest = new Person("firstNameTest", "lastNameTest");
+            LocalDate birthdate = LocalDate.of(1982, 11, 14);
+            medicalRecords.setBirthdate(birthdate);
+            Person personTest = new Person(firstName, lastName);
             medicalRecords.addPerson(personTest);
-            doReturn(personTest).when(personService).getPersonByName("firstNameTest", "lastNameTest");
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             // WHEN
             //the tested function getMedicalRecordsByName is called
             MedicalRecords returnedMedicalRecords = medicalRecordsService.getMedicalRecordsByName("firstNameTest", "lastNameTest");
             // THEN
             //the medicalRecords should be found
-            assertThat(returnedMedicalRecords).isEqualTo(medicalRecords);
-            verify(personService, Mockito.times(1)).getPersonByName("firstNameTest", "lastNameTest");
+            assertThat(returnedMedicalRecords.getPerson().getFirstName()).isEqualTo(firstName);
+            assertThat(returnedMedicalRecords.getPerson().getLastName()).isEqualTo(lastName);
+            verify(personService, Mockito.times(1)).getPersonById("FIRSTNAMETESTLASTNAMETEST");
         }
 
 
         @Test
         @DisplayName("GIVEN non-existing medicalRecords " +
                 "WHEN the function getMedicalRecordsByName is called " +
-                "THEN a MedicalRecordsNotFoundException should be thrown.")
+                "THEN a ObjectNotFoundException should be thrown.")
         void getMedicalRecordsByNameNotExistingTest() {
             // GIVEN
             //non-existing medicalRecords
             Person personTest = new Person("firstNameTest", "lastNameTest");
-            doReturn(personTest).when(personService).getPersonByName("firstNameTest", "lastNameTest");
+            doReturn(personTest).when(personService).getPersonById("FIRSTNAMETESTLASTNAMETEST");
             //WHEN
             //the tested function getMedicalRecordsByName is called
             //THEN
-            //aa MedicalRecordsNotFoundException should be thrown
-            assertThrows(MedicalRecordsNotFoundException.class, () -> medicalRecordsService.getMedicalRecordsByName("firstNameTest", "lastNameTest"));
-            verify(personService, Mockito.times(1)).getPersonByName("firstNameTest", "lastNameTest");
+            //aa ObjectNotFoundException should be thrown
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> medicalRecordsService.getMedicalRecordsByName("firstNameTest", "lastNameTest"));
+            assertEquals("There is no medical records found for the person firstNameTest lastNameTest.\n", exception.getMessage());
+            verify(personService, Mockito.times(1)).getPersonById("FIRSTNAMETESTLASTNAMETEST");
         }
     }
 
@@ -198,7 +167,7 @@ public class MedicalRecordsServiceTest {
             //an existing person with no medical records
             String firstName = "fistNameTest";
             String lastName = "lastNameTest";
-            String birthdate = "birthdate test";
+            String birthdate = "14-11-1982";
             List<String> medications = new ArrayList<>();
             medications.add("medicationTest1");
             medications.add("medicationTest2");
@@ -206,7 +175,7 @@ public class MedicalRecordsServiceTest {
             allergies.add("allergyTest");
             Person personTest = new Person(firstName, lastName);
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
-            doReturn(personTest).when(personService).getPersonByName(firstName, lastName);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function addNewMedicalRecords is called
@@ -214,14 +183,14 @@ public class MedicalRecordsServiceTest {
             // THEN
             //new medical records should be created and attached to this person
             assertThat(result.getPerson()).isEqualTo(personTest);
-            assertThat(result.getBirthdate()).isEqualTo(birthdate);
+            assertThat(result.getBirthdate()).isEqualTo(LocalDate.of(1982, 11, 14));
             assertThat(result.getMedications().size()).isEqualTo(2);
             assertThat(result.getMedications().get(0).getMedicationName()).isEqualTo(medications.get(0));
             assertThat(result.getMedications().get(1).getMedicationName()).isEqualTo(medications.get(1));
             assertThat(result.getAllergies().size()).isEqualTo(1);
             assertThat(result.getAllergies().get(0).getAllergyName()).isEqualTo(allergies.get(0));
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName, lastName);
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -233,7 +202,7 @@ public class MedicalRecordsServiceTest {
             //an existing person with medical records
             String firstName = "fistNameTest";
             String lastName = "lastNameTest";
-            String newBirthdate = "new birthdate test";
+            String newBirthdate = "14-11-1982";
             List<String> newMedication = new ArrayList<>();
             newMedication.add("newMedicationTest1");
             newMedication.add("newMedicationTest2");
@@ -243,14 +212,13 @@ public class MedicalRecordsServiceTest {
 
             Person personTest = new Person(firstName, lastName);
             MedicalRecords medicalRecords = new MedicalRecords();
-            String previousBirthdate = "previous birthdate test";
-            medicalRecords.setBirthdate(previousBirthdate);
+            medicalRecords.setBirthdate(LocalDate.of(2013, 4, 18));
             medicalRecords.addMedication(new Medication("previousMedicationTest"));
             medicalRecords.addAllergy(new Allergy("previousAllergyTest1"));
             medicalRecords.addAllergy(new Allergy("previousAllergyTest2"));
             medicalRecords.addPerson(personTest);
 
-            doReturn(personTest).when(personService).getPersonByName(firstName, lastName);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function addNewMedicalRecords is called
@@ -259,14 +227,14 @@ public class MedicalRecordsServiceTest {
             //new information should replace older information for this person's medical records
             assertThat(result.getMedicalId()).isEqualTo(medicalRecords.getMedicalId());
             assertThat(result.getPerson()).isEqualTo(personTest);
-            assertThat(result.getBirthdate()).isEqualTo(newBirthdate);
+            assertThat(result.getBirthdate()).isEqualTo(LocalDate.of(1982, 11, 14));
             assertThat(result.getMedications().size()).isEqualTo(2);
             assertThat(result.getMedications().get(0).getMedicationName()).isEqualTo("newMedicationTest1");
             assertThat(result.getMedications().get(1).getMedicationName()).isEqualTo("newMedicationTest2");
             assertThat(result.getAllergies().size()).isEqualTo(1);
             assertThat(result.getAllergies().get(0).getAllergyName()).isEqualTo("newAllergyTest");
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName, lastName);
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -278,14 +246,14 @@ public class MedicalRecordsServiceTest {
             //a non-existing person
             String firstName = "fistNameTest";
             String lastName = "lastNameTest";
-            String birthdate = "birthdate test";
+            String birthdate = "14/11/1982";
             List<String> medications = new ArrayList<>();
             medications.add("medicationTest1");
             medications.add("medicationTest2");
             List<String> allergies = new ArrayList<>();
             allergies.add("allergyTest");
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
-            doThrow(PersonNotFoundException.class).when(personService).getPersonByName(firstName, lastName);
+            doThrow(ObjectNotFoundException.class).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function addNewMedicalRecords is called
@@ -295,14 +263,14 @@ public class MedicalRecordsServiceTest {
             assertThat(result.getPerson()).isNotNull();
             assertThat(result.getPerson().getFirstName()).isEqualTo(firstName.toUpperCase());
             assertThat(result.getPerson().getLastName()).isEqualTo(lastName.toUpperCase());
-            assertThat(result.getBirthdate()).isEqualTo(birthdate);
+            assertThat(result.getBirthdate()).isEqualTo(LocalDate.of(1982, 11, 14));
             assertThat(result.getMedications().size()).isEqualTo(2);
             assertThat(result.getMedications().get(0).getMedicationName()).isEqualTo(medications.get(0));
             assertThat(result.getMedications().get(1).getMedicationName()).isEqualTo(medications.get(1));
             assertThat(result.getAllergies().size()).isEqualTo(1);
             assertThat(result.getAllergies().get(0).getAllergyName()).isEqualTo(allergies.get(0));
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName, lastName);
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -322,7 +290,7 @@ public class MedicalRecordsServiceTest {
             medicalRecordsTest.setFirstName(firstName);
             medicalRecordsTest.setLastName(lastName);
             medicalRecordsTest.setMedications(medications);
-            doReturn(personTest).when(personService).getPersonByName(firstName, lastName);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function addNewMedicalRecords is called
@@ -330,13 +298,13 @@ public class MedicalRecordsServiceTest {
             // THEN
             //given elements should be added and missing elements should be null
             assertThat(result.getPerson()).isEqualTo(personTest);
-            assertThat(result.getBirthdate()).isEqualTo(null);
+            assertThat(result.getBirthdate()).isNull();
             assertThat(result.getMedications().size()).isEqualTo(2);
             assertThat(result.getMedications().get(0).getMedicationName()).isEqualTo(medications.get(0));
             assertThat(result.getMedications().get(1).getMedicationName()).isEqualTo(medications.get(1));
             assertThat(result.getAllergies().size()).isEqualTo(0);
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName, lastName);
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -363,7 +331,74 @@ public class MedicalRecordsServiceTest {
             //a NotRightFormatToPostException should be thrown
             assertThrows(NotRightFormatToPostException.class, () -> medicalRecordsService.addNewMedicalRecords(medicalRecordsTest));
             verify(medicalRecordsRepository, Mockito.times(0)).save(any());
-            verify(personService, Mockito.times(0)).getPersonByName(any(), any());
+            verify(personService, Mockito.times(0)).getPersonById(any());
+        }
+        @Test
+        @DisplayName("GIVEN birthdate not given in right format " +
+                "WHEN the function addNewMedicalRecords is called" +
+                "THEN a NotRightFormatToPostException should be thrown.")
+        void addNewMedicalRecordsNotRightFormatTest() {
+            // GIVEN
+            //birthdate not given in right format
+            String firstName = "firstNameTest";
+            String lastName = "lastNameTest";
+            String birthdate = "birthdateTest";
+            List<String> medications = new ArrayList<>();
+            medications.add("medicationTest1");
+            medications.add("medicationTest2");
+            List<String> allergies = new ArrayList<>();
+            allergies.add("allergyTest");
+            MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
+            Person personTest = new Person(firstName, lastName);
+            MedicalRecords medicalRecords = new MedicalRecords();
+            medicalRecords.setBirthdate(LocalDate.of(2013, 4, 18));
+            medicalRecords.addMedication(new Medication("previousMedicationTest"));
+            medicalRecords.addAllergy(new Allergy("previousAllergyTest1"));
+            medicalRecords.addAllergy(new Allergy("previousAllergyTest2"));
+            medicalRecords.addPerson(personTest);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+            // WHEN
+            //the tested function updateMedicalRecords is called
+            // THEN
+            //a NotRightFormatToPostException should be thrown
+            Exception exception = assertThrows(NotRightFormatToPostException.class, () -> medicalRecordsService.addNewMedicalRecords(medicalRecordsTest));
+            assertEquals("The birthdate should be given at the format \"dd/MM/yyyy\".\n", exception.getMessage());
+            verify(medicalRecordsRepository, Mockito.times(0)).save(any());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+        }
+
+        @Test
+        @DisplayName("GIVEN birthdate not given in right format " +
+                "WHEN the function addNewMedicalRecords is called" +
+                "THEN a NotRightFormatToPostException should be thrown.")
+        void addNewMedicalRecordsBirthdateMonthToBigFormatTest() {
+            // GIVEN
+            //no information to update
+            String firstName = "firstNameTest";
+            String lastName = "lastNameTest";
+            String birthdate = "14-51-1982";
+            List<String> medications = new ArrayList<>();
+            medications.add("medicationTest1");
+            medications.add("medicationTest2");
+            List<String> allergies = new ArrayList<>();
+            allergies.add("allergyTest");
+            MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
+            Person personTest = new Person(firstName, lastName);
+            MedicalRecords medicalRecords = new MedicalRecords();
+            medicalRecords.setBirthdate(LocalDate.of(2013, 4, 18));
+            medicalRecords.addMedication(new Medication("previousMedicationTest"));
+            medicalRecords.addAllergy(new Allergy("previousAllergyTest1"));
+            medicalRecords.addAllergy(new Allergy("previousAllergyTest2"));
+            medicalRecords.addPerson(personTest);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+            // WHEN
+            //the tested function updateMedicalRecords is called
+            // THEN
+            //a NotTheSamePersonException should be thrown
+            Exception exception = assertThrows(NotRightFormatToPostException.class, () -> medicalRecordsService.addNewMedicalRecords(medicalRecordsTest));
+            assertEquals("The birthdate should be given at the format \"dd/MM/yyyy\"\nInvalid value for MonthOfYear (valid values 1 - 12): 51", exception.getMessage());
+            verify(medicalRecordsRepository, Mockito.times(0)).save(any());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
     }
 
@@ -380,7 +415,7 @@ public class MedicalRecordsServiceTest {
             //an existing person and all medical records information
             String firstName = "firstNameTest";
             String lastName = "lastNameTest";
-            String birthdate = "birthdate test";
+            String birthdate = "14/11/1982";
             List<String> medications = new ArrayList<>();
             medications.add("medicationTest1");
             medications.add("medicationTest2");
@@ -388,19 +423,16 @@ public class MedicalRecordsServiceTest {
             allergies.add("allergyTest");
             Person personTest = new Person(firstName, lastName);
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
-            doReturn(personTest).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function updateMedicalRecords is called
             String result = medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest);
             // THEN
             //the new medical records should be added to this person's medical records
-            assertThat(result).isEqualTo("The medical records about the person FIRSTNAMETEST LASTNAMETEST have been updated with following items :\n"
-                    + "- the birthdate : birthdate test\n"
-                    + "- the medications : [medicationTest1, medicationTest2]\n"
-                    + "- the allergies : [allergyTest]\n");
+            assertThat(result).isEqualTo("The medical records about the person FIRSTNAMETEST LASTNAMETEST have been updated.\n");
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -420,17 +452,16 @@ public class MedicalRecordsServiceTest {
             medicalRecordsTest.setFirstName(firstName);
             medicalRecordsTest.setLastName(lastName);
             medicalRecordsTest.setMedications(medications);
-            doReturn(personTest).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doReturn(null).when(medicalRecordsRepository).save(any());
             // WHEN
             //the tested function updateMedicalRecords is called
             String result = medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest);
             // THEN
             //the given medical records should be added to this person's medical records
-            assertThat(result).isEqualTo("The medical records about the person FIRSTNAMETEST LASTNAMETEST have been updated with following items :\n"
-                    + "- the medications : [medicationTest1, medicationTest2]\n");
+            assertThat(result).isEqualTo("The medical records about the person FIRSTNAMETEST LASTNAMETEST have been updated.\n");
             verify(medicalRecordsRepository, Mockito.times(1)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -449,14 +480,16 @@ public class MedicalRecordsServiceTest {
             List<String> allergies = new ArrayList<>();
             allergies.add("allergyTest");
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
-            doThrow(PersonNotFoundException.class).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException("error message");
+            doThrow(objectNotFoundException).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             // WHEN
             //the tested function updateMedicalRecords is called
             // THEN
             //a PersonNotFoundException should be thrown
-            assertThrows(PersonNotFoundException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            assertEquals("error message", exception.getMessage());
             verify(medicalRecordsRepository, Mockito.times(0)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -478,14 +511,15 @@ public class MedicalRecordsServiceTest {
             allergies.add("allergyTest");
             Person personTest = new Person(firstName2, lastName2);
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
-            doReturn(personTest).when(personService).getPersonByName(firstName2.toUpperCase(), lastName2.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName2.toUpperCase() + lastName2.toUpperCase());
             // WHEN
             //the tested function updateMedicalRecords is called
             // THEN
             //a NotTheSamePersonException should be thrown
-            assertThrows(NotTheSamePersonException.class, () -> medicalRecordsService.updateMedicalRecord(firstName2, lastName2, medicalRecordsTest));
+            Exception exception = assertThrows(NotTheSamePersonException.class, () -> medicalRecordsService.updateMedicalRecord(firstName2, lastName2, medicalRecordsTest));
+            assertEquals("It's not possible to update first name or last name.", exception.getMessage());
             verify(medicalRecordsRepository, Mockito.times(0)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName2.toUpperCase(), lastName2.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName2.toUpperCase() + lastName2.toUpperCase());
         }
 
         @Test
@@ -499,14 +533,71 @@ public class MedicalRecordsServiceTest {
             String lastName = "lastNameTest";
             Person personTest = new Person(firstName, lastName);
             MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO();
-            doReturn(personTest).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             // WHEN
             //the tested function updateMedicalRecords is called
             // THEN
             //a NotTheSamePersonException should be thrown
-            assertThrows(NothingToUpdateException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            Exception exception = assertThrows(NothingToUpdateException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            assertEquals("The medical records about the person " + firstName.toUpperCase() + " " + lastName.toUpperCase() + " wasn't updated, there was no element to update.\n", exception.getMessage());
             verify(medicalRecordsRepository, Mockito.times(0)).save(any());
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+        }
+
+        @Test
+        @DisplayName("GIVEN birthdate not given in right format " +
+                "WHEN the function updateMedicalRecords is called" +
+                "THEN a NotRightFormatToPostException should be thrown.")
+        void updateMedicalRecordsNotRightFormatTest() {
+            // GIVEN
+            //birthdate not given in right format
+            String firstName = "firstNameTest";
+            String lastName = "lastNameTest";
+            String birthdate = "birthdateTest";
+            List<String> medications = new ArrayList<>();
+            medications.add("medicationTest1");
+            medications.add("medicationTest2");
+            List<String> allergies = new ArrayList<>();
+            allergies.add("allergyTest");
+            Person personTest = new Person(firstName, lastName);
+            MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+            // WHEN
+            //the tested function updateMedicalRecords is called
+            // THEN
+            //a NotRightFormatToPostException should be thrown
+            Exception exception = assertThrows(NotRightFormatToPostException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            assertEquals("The birthdate should be given at the format \"dd/MM/yyyy\".\n", exception.getMessage());
+            verify(medicalRecordsRepository, Mockito.times(0)).save(any());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+        }
+
+        @Test
+        @DisplayName("GIVEN birthdate not given in right format " +
+                "WHEN the function updateMedicalRecords is called" +
+                "THEN a NotRightFormatToPostException should be thrown.")
+        void updateMedicalRecordsBirthdateMonthToBigFormatTest() {
+            // GIVEN
+            //no information to update
+            String firstName = "firstNameTest";
+            String lastName = "lastNameTest";
+            String birthdate = "14-51-1982";
+            List<String> medications = new ArrayList<>();
+            medications.add("medicationTest1");
+            medications.add("medicationTest2");
+            List<String> allergies = new ArrayList<>();
+            allergies.add("allergyTest");
+            Person personTest = new Person(firstName, lastName);
+            MedicalRecordDTO medicalRecordsTest = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
+            // WHEN
+            //the tested function updateMedicalRecords is called
+            // THEN
+            //a NotTheSamePersonException should be thrown
+            Exception exception = assertThrows(NotRightFormatToPostException.class, () -> medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordsTest));
+            assertEquals("The birthdate should be given at the format \"dd/MM/yyyy\"\nInvalid value for MonthOfYear (valid values 1 - 12): 51", exception.getMessage());
+            verify(medicalRecordsRepository, Mockito.times(0)).save(any());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
     }
 
@@ -526,7 +617,7 @@ public class MedicalRecordsServiceTest {
             Person personTest = new Person(firstName, lastName);
             MedicalRecords medicalRecordsTest = new MedicalRecords();
             medicalRecordsTest.addPerson(personTest);
-            doReturn(personTest).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             doNothing().when(medicalRecordsRepository).delete(medicalRecordsTest);
             // WHEN
             //the tested function deleteMedicalRecords is called
@@ -535,7 +626,7 @@ public class MedicalRecordsServiceTest {
             //a message indicating that this person's medical records are suppressed should be returned
             assertThat(result).isEqualTo("The medical records about the person FIRSTNAMETEST LASTNAMETEST have been deleted.\n");
             verify(medicalRecordsRepository, Mockito.times(1)).delete(medicalRecordsTest);
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         }
 
         @Test
@@ -548,13 +639,14 @@ public class MedicalRecordsServiceTest {
             String firstName = "firstNameTest";
             String lastName = "lastNameTest";
             Person personTest = new Person(firstName, lastName);
-            doReturn(personTest).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            doReturn(personTest).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             // WHEN
             //the tested function deleteMedicalRecords is called
             // THEN
             // a NothingToDeleteException should be thrown
-            assertThrows(NothingToDeleteException.class, () -> medicalRecordsService.deleteMedicalRecords(firstName, lastName));
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            Exception exception = assertThrows(NothingToDeleteException.class, () -> medicalRecordsService.deleteMedicalRecords(firstName, lastName));
+            assertEquals("The medical records about the person " + firstName.toUpperCase() + " " + lastName.toUpperCase() + " weren't found, so it couldn't have been deleted.\n", exception.getMessage());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             verify(medicalRecordsRepository, Mockito.times(0)).delete(any());
         }
 
@@ -567,47 +659,17 @@ public class MedicalRecordsServiceTest {
             //a non-existing person
             String firstName = "firstNameTest";
             String lastName = "lastNameTest";
-            doThrow(PersonNotFoundException.class).when(personService).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException("error message");
+            doThrow(objectNotFoundException).when(personService).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             // WHEN
             //the tested function deleteMedicalRecords is called
             // THEN
             //a PersonNotFoundException should be thrown
-            assertThrows(PersonNotFoundException.class, () -> medicalRecordsService.deleteMedicalRecords(firstName, lastName));
-            verify(personService, Mockito.times(1)).getPersonByName(firstName.toUpperCase(), lastName.toUpperCase());
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> medicalRecordsService.deleteMedicalRecords(firstName, lastName));
+            assertEquals("error message", exception.getMessage());
+            verify(personService, Mockito.times(1)).getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
             verify(medicalRecordsRepository, Mockito.times(0)).delete(any());
         }
     }
-
-    @Nested
-    @DisplayName("MedicalRecordsToString tests:")
-    class MedicalRecordsToString {
-        @Test
-        @DisplayName("GIVEN a list of medical records " +
-                "WHEN the function medicalRecordsToString is called " +
-                "THEN a String with all informations should be returned.")
-        void medicalRecordsToStringTest() {
-            // GIVEN
-            //a list of medical records
-            MedicalRecords medicalRecords1 = new MedicalRecords();
-            MedicalRecords medicalRecords2 = new MedicalRecords();
-            MedicalRecords medicalRecords3 = new MedicalRecords();
-            medicalRecords1.addPerson(new Person("firstNameTest1", "lastNameTest1"));
-            medicalRecords2.addPerson(new Person("firstNameTest2", "lastNameTest2"));
-            medicalRecords3.addPerson(new Person("firstNameTest3", "lastNameTest3"));
-            List<MedicalRecords> medicalRecordsList = new ArrayList<>();
-            medicalRecordsList.add(medicalRecords1);
-            medicalRecordsList.add(medicalRecords2);
-            medicalRecordsList.add(medicalRecords3);
-            // WHEN
-            //the tested function firestationToString is called with this list
-            String result = medicalRecordsService.medicalRecordsToString(medicalRecordsList);
-            // THEN
-            //the right string with all information should be returned
-            assertThat(result).contains("Firestation n°1 :\n- address test\n- address test 2\n");
-            assertThat(result).contains("Firestation n°2 :\n- address test 3\n");
-            assertThat(result).contains("Firestation n°3 :\nThere are no addresses attached to this firestation.\n");
-        }
-    }
-
 }
 

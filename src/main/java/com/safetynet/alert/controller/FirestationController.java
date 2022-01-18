@@ -1,9 +1,9 @@
 package com.safetynet.alert.controller;
 
-import com.safetynet.alert.exceptions.NothingToDeleteException;
-import com.safetynet.alert.model.Firestation;
-import com.safetynet.alert.model.MappingFirestationAddress;
+import com.safetynet.alert.model.DTO.FirestationDTO;
+import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.service.FirestationService;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +18,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
+@Api("CRUD operations about firestations.")
 public class FirestationController {
 
     @Autowired
@@ -28,16 +29,13 @@ public class FirestationController {
      *
      * @return - A list of firestations.
      */
-    @GetMapping("/firestation")
+    @GetMapping("/firestations")
     @Transactional
-    public ResponseEntity<String> getAllFirestations() {
+    public ResponseEntity<List<FirestationDTO>> getAllFirestations() {
         log.debug("The function getAllFirestations in FirestationController is beginning.");
-        //getting all firestations
-        List<Firestation> firestations = firestationService.getFirestations();
-        //putting the result list to String to be readable by user
-        String result = firestationService.firestationsToString(firestations);
+        List<FirestationDTO> firestations = firestationService.getFirestations();
         log.debug("The function getAllFirestations in FirestationController is ending without any exception.\n");
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(firestations, HttpStatus.OK);
     }
 
     /**
@@ -48,19 +46,9 @@ public class FirestationController {
      */
     @GetMapping("/firestation/{idOrAddress}")
     @Transactional
-    public ResponseEntity<String> getFirestation(@PathVariable("idOrAddress") String idOrAddress) {
+    public ResponseEntity<FirestationDTO> getFirestation(@PathVariable("idOrAddress") String idOrAddress) {
         log.debug("The function getFirestation in FirestationController is beginning.");
-        String result;
-        try {
-            //if the variable idOrAddress is an int, so it's a firestation's id, the function getFirestationById is called
-            int id = Integer.parseInt(idOrAddress);
-            Firestation firestationResearched = firestationService.getFirestationById(id);
-            result = firestationResearched.toString();
-        } catch (NumberFormatException e) {
-            //if the variable idOrAddress is not an int, so it's supposed to be an address, the function getFirestationByAddress is called
-            List<Firestation> firestationsResearched = firestationService.getFirestationByAddress(idOrAddress);
-            result = firestationService.firestationsToString(firestationsResearched);
-        }
+        FirestationDTO result = firestationService.getFirestationDTO(idOrAddress);
         log.debug("The function getFirestation in FirestationController is ending without any exception.\n");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -68,63 +56,53 @@ public class FirestationController {
     /**
      * Create - Add a firestation or an address to a firestation
      *
-     * @param mappingFirestationAddress - An object which contains a firestation's number (int) and an address (String) which has to be attached to this firestation
+     * @param mappingFirestationAddressDTO - An object which contains a firestation's number (int) and an address (String) which has to be attached to this firestation
      * @return A String indicating the Firestation object saved
      */
     @PostMapping("/firestation")
     @Transactional
-    public ResponseEntity<String> addMappingFirestationAddress(@RequestBody MappingFirestationAddress mappingFirestationAddress) {
+    public ResponseEntity<String> addMappingFirestationAddress(@RequestBody MappingFirestationAddressDTO mappingFirestationAddressDTO) {
         log.debug("The function addMappingFirestationAddress in FirestationController is beginning.");
-        //getting parameters id and address from request's body and calling the function addNewMapping on this
-//
-//        String address = mappingFirestationAddress.getAddress();
-//        String result = firestationService.addNewMapping(id, address);
-        String result = firestationService.addNewMapping(mappingFirestationAddress);
-        int id = mappingFirestationAddress.getFirestationId();
+        String result = firestationService.addNewMapping(mappingFirestationAddressDTO);
+        int number = mappingFirestationAddressDTO.getNumber();
         //building a new location and putting it in the response's headers to transmit the created firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(id)
+                .buildAndExpand(number)
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
-        log.debug("The function addMappingFirestationAddress in FirestationController is ending without any exception.\n");
-        return new ResponseEntity<>(result, httpHeaders, HttpStatus.CREATED);
-    }
 
+        String okCreated = result + location;
+        log.debug("The function addMappingFirestationAddress in FirestationController is ending without any exception.\n");
+        return new ResponseEntity<>(okCreated, httpHeaders, HttpStatus.CREATED);
+    }
 
     /**
      * Update - Update an address' firestation
      *
-     * @param mappingFirestationAddress - A string which is the address for which the firestation has to be changed
+     * @param mappingFirestationAddressDTO - A string which is the address for which the firestation has to be changed
      * @return A String indicating the firestation which is updated with the given address
      */
     @PutMapping("/firestation")
     @Transactional
-    public ResponseEntity<String> updateAddress(@RequestBody MappingFirestationAddress mappingFirestationAddress) {
+    public ResponseEntity<String> updateAddress(@RequestBody MappingFirestationAddressDTO mappingFirestationAddressDTO) {
         log.debug("The function updateAddressByFirestationId in FirestationController is beginning.");
-        //getting parameters id and address from request's body and calling the function addNewMapping on this
-        int id = mappingFirestationAddress.getFirestationId();
-        String address = mappingFirestationAddress.getAddress();
-        //deleting old mappings concerning the address to update
-        try{
-        firestationService.deleteAddress(address);}catch(NothingToDeleteException ignored){}
-        //creating a new mapping with given firestation and address
-        firestationService.addNewMapping(mappingFirestationAddress);
+        String updated = firestationService.updateMapping(mappingFirestationAddressDTO);
+        int number = mappingFirestationAddressDTO.getNumber();
         //building a new location and putting it in the response's headers to transmit the updated firestation's uri to user
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(id)
+                .buildAndExpand(number)
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
-        String okSaved = "The address " + address + " have been updated to the firestation number " + id + ".";
+        String okUpdated = updated + location;
         log.debug("The function updateAddressByFirestationId in FirestationController is ending without any exception.\n");
-        return new ResponseEntity<>(okSaved, httpHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(okUpdated, httpHeaders, HttpStatus.OK);
     }
-
 
     /**
      * Delete - Delete an address from firestations or a firestation
@@ -136,16 +114,7 @@ public class FirestationController {
     @Transactional
     public ResponseEntity<String> deleteAddressOrFirestations(@PathVariable("idOrAddress") String idOrAddress) {
         log.debug("The function deleteAddressFromFirestations in FirestationController is beginning.");
-        String result;
-        try {
-            //if the variable idOrAddress is an int, so it's a firestation's id, the function deleteFirestation is called
-            int id = Integer.parseInt(idOrAddress);
-            firestationService.deleteFirestation(id);
-            result = "The firestation number " + id + " have been deleted.";
-        } catch (NumberFormatException e) {
-            //if the variable idOrAddress is not an int, so it's supposed to be an address, the function deleteAddress is called
-            result = firestationService.deleteAddress(idOrAddress);
-        }
+        String result = firestationService.deleteFirestationOrAddress(idOrAddress);
         log.debug("The function deleteAddressOrFirestation in FirestationController is ending without any exception.\n");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

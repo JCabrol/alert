@@ -16,58 +16,27 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "firestation")
+@Table(name = "FIRESTATION")
 public class Firestation {
 
     @Id
-    @Column(name = "station_id")
+    @Column(name = "STATION_ID")
     private int stationId;
 
     @OneToMany(mappedBy = "firestation",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
-    List<AttachedAddress> attachedAddresses = new ArrayList<>();
+    List<Address> attachedAddresses = new ArrayList<>();
 
 
-    public void addAttachedAddress(AttachedAddress attachedAddress) {
-        boolean addressAlreadyAttached = false;
-        for (AttachedAddress address : attachedAddresses)
-            if (address.getAddress().equals(attachedAddress.getAddress())) {
-                addressAlreadyAttached = true;
-                break;
-            }
-        if (!addressAlreadyAttached) {
-            attachedAddresses.add(attachedAddress);
-            attachedAddress.setFirestation(this);
-        }
+    public void addAddress(Address newAddress) {
+        attachedAddresses.add(newAddress);
+        newAddress.setFirestation(this);
     }
 
-    public void removeAttachedAddress(AttachedAddress attachedAddress) {
-        attachedAddresses.remove(attachedAddress);
-        attachedAddress.setFirestation(null);
-    }
-
-
-    public AttachedAddress getAttachedAddress(String address) {
-        AttachedAddress result = null;
-        for (AttachedAddress attachedAddress : attachedAddresses) {
-            if ((attachedAddress.getAddress()).replaceAll("\\s", "").equalsIgnoreCase(address.replaceAll("\\s", ""))) {
-                result = attachedAddress;
-            }
-        }
-        return result;
-    }
-
-
-    public String toString() {
-        StringBuilder result = new StringBuilder("Firestation n°" + this.stationId + " :\n");
-        if (attachedAddresses.isEmpty()) {
-            result.append("There are no addresses attached to this firestation.\n");
-        } else {
-            for (AttachedAddress attachedAddress : this.attachedAddresses)
-                result.append("- ").append(attachedAddress.getAddress()).append("\n");
-        }
-        return result + "\n";
+    public void removeAttachedAddress(Address addressToDelete) {
+        attachedAddresses.remove(addressToDelete);
+        addressToDelete.setFirestation(null);
     }
 }

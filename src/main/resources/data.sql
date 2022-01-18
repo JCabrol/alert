@@ -1,15 +1,29 @@
-INSERT INTO PERSON VALUES
-  (1,'FIRSTNAME1', 'LASTNAME1', '1 main street','CITY1',1111,'111-111-1111','person1@mail.com',1),
-  (2,'FIRSTNAME2', 'LASTNAME2', '2 main street','CITY2',2222,'222-222-2222','person2@mail.com',2),
-  (3,'FIRSTNAME3', 'LASTNAME3', '3 main street','CITY3',3333,'333-333-3333','person3@mail.com',3);
+INSERT INTO person VALUES
+('FIRSTNAME1LASTNAME1','firstName1', 'lastName1', null,'1111111111','person1@mail.com',null);
+--(3,'FIRSTNAME3', 'LASTNAME3', 3 ,'3333333333','person3@mail.com',3);
 
-INSERT INTO FIRESTATION VALUES
-(1),(2),(3);
+--INSERT INTO firestation VALUES
+--1),(2),(3);
 
-INSERT INTO ATTACHED_ADDRESS VALUES
-(1,'ADDRESS11'),
-(1,'ADDRESS12'),
-(1,'ADDRESS13'),
-(2,'ADDRESS21'),
-(2,'ADDRESS22'),
-(3,'ADDRESS31');
+INSERT INTO address VALUES
+(1,'addressTest1','11111','cityTest1',null);
+--(2,'ADDRESS12','CITY1','11111',1),
+--(3,'ADDRESS13','CITY2','22222',1);
+--(4,'ADDRESS21','CITY1','11111',2),
+--(5,'ADDRESS22','CITY2','22222',2),
+--(6,'ADDRESS31','CITY1','11111',3);
+UPDATE person SET address_id = 1 WHERE id='FIRSTNAME1LASTNAME1';
+--INSERT INTO medical_records VALUES
+--(1,'12/11/1982'),
+--(2,'15/04/2013'),
+--(3,'13/08/2020');
+
+--INSERT INTO allergy VALUES
+--(1,'allergy1',1),
+--(2,'allergy2',1),
+--(3,'allergy3',2);
+
+--INSERT INTO medication VALUES
+--(1,'medication1',1),
+--(2,'medication2',1),
+--(3,'medication3',2);

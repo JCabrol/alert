@@ -1,75 +1,75 @@
-package com.safetynet.alert.integrationTests;
-
-import com.safetynet.alert.repository.FirestationRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.Lists;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@Tag("FirestationTests")
-@Slf4j
-@ActiveProfiles("test")
-@DirtiesContext(classMode = AFTER_CLASS)
-@SpringBootTest
-@AutoConfigureMockMvc
-
-public class FirestationControllerIT {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private FirestationRepository firestationRepository;
-
-    @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-    @Nested
-    @Tag("FirestationControllerIntegrationTests")
-    @DisplayName("GET firestation integration requests:")
-    class GetIntegrationTests {
-
-        @Test
-        @DisplayName("GIVEN a non empty table \"firestations\" " +
-                "WHEN we call the uri \"/firestation\", " +
-                "THEN we should have an \"isOk\" status and the response's body should contain a JSon file with all the firestations.")
-        public void getAllFirestationsIntegrationTest() throws Exception {
-            //GIVEN
-            RequestBuilder requestBuilder = MockMvcRequestBuilders
-                    .get("/firestation");
-            //WHEN
-            mockMvc.perform(requestBuilder)
-                    //THEN
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                    .andExpect(jsonPath("$").isNotEmpty())
-                    .andExpect(jsonPath("$", hasSize(3)))
-                    .andExpect(jsonPath("$[0].idStation", is(1)))
-                    .andExpect(jsonPath("$[0].attachedAddresses", hasSize(3)))
-                    .andExpect(jsonPath("$[0].attachedAddresses", is(Lists.newArrayList("ADDRESS11", "ADDRESS12", "ADDRESS13"))))
-                    .andExpect(jsonPath("$[1].idStation", is(2)))
-                    .andExpect(jsonPath("$[1].attachedAddresses", hasSize(2)))
-                    .andExpect(jsonPath("$[1].attachedAddresses", Matchers.is(Lists.newArrayList("ADDRESS21", "ADDRESS22"))))
-                    .andExpect(jsonPath("$[2].idStation", is(3)))
-                    .andExpect(jsonPath("$[2].attachedAddresses", hasSize(1)))
-                    .andExpect(jsonPath("$[2].attachedAddresses", is(Lists.newArrayList("ADDRESS31"))));
-        }
+//package com.safetynet.alert.integrationTests;
+//
+//import com.safetynet.alert.repository.FirestationRepository;
+//import lombok.extern.slf4j.Slf4j;
+//import org.assertj.core.util.Lists;
+//import org.hamcrest.Matchers;
+//import org.junit.jupiter.api.DisplayName;
+//import org.junit.jupiter.api.Nested;
+//import org.junit.jupiter.api.Tag;
+//import org.junit.jupiter.api.Test;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+//import org.springframework.boot.test.context.SpringBootTest;
+//import org.springframework.http.MediaType;
+//import org.springframework.test.annotation.DirtiesContext;
+//import org.springframework.test.context.ActiveProfiles;
+//import org.springframework.test.web.servlet.MockMvc;
+//import org.springframework.test.web.servlet.RequestBuilder;
+//import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+//
+//import static org.hamcrest.CoreMatchers.is;
+//import static org.hamcrest.Matchers.hasSize;
+//import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
+//import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+//
+//@Tag("FirestationTests")
+//@Slf4j
+//@ActiveProfiles("test")
+//@DirtiesContext(classMode = AFTER_CLASS)
+//@SpringBootTest
+//@AutoConfigureMockMvc
+//
+//public class FirestationControllerIT {
+//
+//    @Autowired
+//    private MockMvc mockMvc;
+//
+//    @Autowired
+//    private FirestationRepository firestationRepository;
+//
+//    @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
+//    @Nested
+//    @Tag("FirestationControllerIntegrationTests")
+//    @DisplayName("GET firestation integration requests:")
+//    class GetIntegrationTests {
+//
+//        @Test
+//        @DisplayName("GIVEN a non empty table \"firestations\" " +
+//                "WHEN we call the uri \"/firestation\", " +
+//                "THEN we should have an \"isOk\" status and the response's body should contain a JSon file with all the firestations.")
+//        public void getAllFirestationsIntegrationTest() throws Exception {
+//            //GIVEN
+//            RequestBuilder requestBuilder = MockMvcRequestBuilders
+//                    .get("/firestation");
+//            //WHEN
+//            mockMvc.perform(requestBuilder)
+//                    //THEN
+//                    .andExpect(status().isOk())
+//                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+//                    .andExpect(jsonPath("$").isNotEmpty())
+//                    .andExpect(jsonPath("$", hasSize(3)))
+//                    .andExpect(jsonPath("$[0].idStation", is(1)))
+//                    .andExpect(jsonPath("$[0].attachedAddresses", hasSize(3)))
+//                    .andExpect(jsonPath("$[0].attachedAddresses", is(Lists.newArrayList("ADDRESS11", "ADDRESS12", "ADDRESS13"))))
+//                    .andExpect(jsonPath("$[1].idStation", is(2)))
+//                    .andExpect(jsonPath("$[1].attachedAddresses", hasSize(2)))
+//                    .andExpect(jsonPath("$[1].attachedAddresses", Matchers.is(Lists.newArrayList("ADDRESS21", "ADDRESS22"))))
+//                    .andExpect(jsonPath("$[2].idStation", is(3)))
+//                    .andExpect(jsonPath("$[2].attachedAddresses", hasSize(1)))
+//                    .andExpect(jsonPath("$[2].attachedAddresses", is(Lists.newArrayList("ADDRESS31"))));
+//        }
 /*
         @Test
         @DisplayName("GIVEN an empty table \"persons\" " +
@@ -405,6 +405,6 @@ public class FirestationControllerIT {
             assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
             assertThat(response.getContentAsString()).isEqualTo("");
         }*/
-    }
-}
+//    }
+//}
 
