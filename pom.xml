@@ -12,7 +12,7 @@
     <artifactId>alert</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>alert</name>
-    <description>project for Spring Boot</description>
+    <description>Send information to emergency services systems</description>
     <properties>
         <java.version>11</java.version>
         <sonar.organization>jcabrol</sonar.organization>
@@ -189,24 +189,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>
+                                com.safetynet.alert.AlertApplication
+                            </mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
-                        <configuration>
-                            <archive>
-                                <manifest>
-                                    <mainClass>
-                                        com.safetynet.alert.AlertApplication
-                                    </mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>executable-jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
