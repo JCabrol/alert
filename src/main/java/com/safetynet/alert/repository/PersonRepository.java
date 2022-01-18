@@ -8,12 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PersonRepository extends CrudRepository<Person, Integer> {
+public interface PersonRepository extends CrudRepository<Person, String> {
 
-
-    Optional<Person> findByFirstNameAndLastName(String firstName, String lastName);
-
-    List<Person> findByAddress(String address);
-
+    List<Person> findByFirstNameAndLastName(String firstName, String lastName);
 
 }

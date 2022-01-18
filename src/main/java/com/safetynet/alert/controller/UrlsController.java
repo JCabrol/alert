@@ -18,7 +18,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
-@Api("Specific CRUD operations about SafetyNet Alert.")
+@Api("Endpoints to get information.")
 @Slf4j
 public class UrlsController {
 
@@ -28,7 +28,7 @@ public class UrlsController {
     /**
      * Read - Get a list of all the persons and also the number of adults and the number of children covered by a firestation.
      *
-     * @param stationId  - the number of the station in which information are researched.
+     * @param stationId - the number of the station in which information are researched.
      * @return - A FirestationInfoDTO object containing information about the persons covered by the firestation researched.
      */
     @Transactional
@@ -43,7 +43,7 @@ public class UrlsController {
     /**
      * Read - Get a list of children living at the researched address and the members of their household.
      *
-     * @param address  - a String which corresponds to the researched address.
+     * @param address - a String which corresponds to the researched address.
      * @return - A list of ChildInfoDTO objects, each one containing information about the children living at the researched address and his household.
      */
     @Transactional
@@ -58,7 +58,7 @@ public class UrlsController {
     /**
      * Read - Get a list phone numbers belonging to the persons covered by a firestation.
      *
-     * @param stationId  - the firestation number.
+     * @param stationId - the firestation number.
      * @return - A list of String which are all the phone numbers of the person covered by the researched firestation
      */
     @Transactional
@@ -73,7 +73,7 @@ public class UrlsController {
     /**
      * Read - Get a list of person living at an address and information about them (phone number, age and medical records).
      *
-     * @param address  - a String that represents the researched address.
+     * @param address - a String that represents the researched address.
      * @return - A FireInfoDTO object containing information about the person found.
      */
     @Transactional
@@ -89,11 +89,11 @@ public class UrlsController {
      * Read - Get a list of person living at an address and information about them (phone number, age and medical records)
      * for all the persons covered by firestations.
      *
-     * @param stations  - a list of Integer which are the numbers of the researched firestations.
+     * @param stations - a list of Integer which are the numbers of the researched firestations.
      * @return - A list of FireInfoDTO objects containing information about persons found at each address covered by the researched firestations.
      */
     @Transactional
-    @GetMapping("/flood")
+    @GetMapping("/flood/stations")
     public ResponseEntity<List<FireInfoDTO>> getHouseholdsByStation(@RequestParam List<Integer> stations) {
         log.debug("The function getHouseholdsByStation in UrlsController is beginning.");
         List<FireInfoDTO> result = urlsService.getHouseholdsByStation(stations);
@@ -101,12 +101,18 @@ public class UrlsController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-
+    /**
+     * Read - Get all information about a person (or several person having the same last name and first name).
+     *
+     * @param firstName - a String which is the first name of the researched person.
+     * @param lastName - a String which is the last name of the researched person.
+     * @return - A list of PersonInfoDTO object which contains all the information concerning a person.
+     */
     @Transactional
     @GetMapping("/personInfo")
-    public ResponseEntity<PersonInfo2DTO> getPersonsByName(@RequestParam String firstName, String lastName) {
+    public ResponseEntity<List<PersonInfo2DTO>> getPersonsByName(@RequestParam String firstName, String lastName) {
         log.debug("The function getPersonsByName in UrlsController is beginning.");
-        PersonInfo2DTO result = urlsService.getPersonsByName(firstName, lastName);
+        List<PersonInfo2DTO> result = urlsService.getPersonsByName(firstName, lastName);
         log.debug("The function getPersonsByName in UrlsController is ending without any exception.\n");
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -114,7 +120,7 @@ public class UrlsController {
     /**
      * Read - Get a list of city's residents' e-mail.
      *
-     * @param city  - a String which is the researched city.
+     * @param city - a String which is the researched city.
      * @return - A list of String containing all the e-mail addresses of the persons living in the researched city.
      */
     @Transactional

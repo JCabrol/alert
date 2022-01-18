@@ -31,17 +31,8 @@ public class Firestation {
 
 
     public void addAddress(Address newAddress) {
-        boolean addressAlreadyAttached = false;
-        for (Address address : attachedAddresses) {
-            if ((newAddress.getStreet().equals(address.getStreet())) && (newAddress.getCity().equals(address.getCity())) && (newAddress.getZip().equals(address.getZip()))) {
-                addressAlreadyAttached = true;
-                break;
-            }
-        }
-        if (!addressAlreadyAttached) {
-            attachedAddresses.add(newAddress);
-            newAddress.setFirestation(this);
-        }
+        attachedAddresses.add(newAddress);
+        newAddress.setFirestation(this);
     }
 
     public void removeAttachedAddress(Address addressToDelete) {

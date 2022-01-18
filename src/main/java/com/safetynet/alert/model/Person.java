@@ -1,11 +1,11 @@
 package com.safetynet.alert.model;
 
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 @Entity
 @Table(name = "PERSON")
@@ -17,8 +17,10 @@ import java.util.Objects;
 public class Person {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @GeneratedValue(generator = "nameId-generator")
+    @GenericGenerator(name = "nameId-generator",
+            strategy = "com.safetynet.alert.generator.MyGenerator")
+    private String id;
 
     @Column(name = "FIRST_NAME", updatable = false)
     @NonNull
@@ -45,29 +47,4 @@ public class Person {
             fetch = FetchType.LAZY)
     @JoinColumn(name = "MEDICAL_ID")
     private MedicalRecords medicalRecords;
-
-
-    public MedicalRecords getMedicalRecords() {
-        return medicalRecords;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Person)) return false;
-        return (Objects.equals(id, ((Person) o).getId()));
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-//    public String toString() {
-//        return "Name : " + this.firstName + " " + this.lastName + "\n" +
-//                "Address : " + this.address + " - " +
-//                this.zip + " " + this.city + "\n" +
-//                "Phone number : " + this.phoneNumber + "\n" +
-//                "Mail : " + this.mail + "\n" + "\n";
-//    }
 }

@@ -7,8 +7,6 @@ import com.safetynet.alert.model.DTO.MappingFirestationAddressDTO;
 import com.safetynet.alert.model.Firestation;
 import com.safetynet.alert.repository.FirestationRepository;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
+
 @AllArgsConstructor
 @Service
 @Slf4j
@@ -34,10 +31,10 @@ public class FirestationServiceImpl implements FirestationService {
      * Get all the firestations presents in data
      *
      * @return a list containing all the firestations presents in data
-     * @throws EmptyFirestationsException - when there is no firestation found
+     * @throws EmptyObjectException - when there is no firestation found
      */
     @Override
-    public List<FirestationDTO> getFirestations() throws EmptyFirestationsException {
+    public List<FirestationDTO> getFirestations() throws EmptyObjectException {
         log.debug("The function getFirestations in FirestationService is beginning.");
         List<Firestation> allFirestations = (List<Firestation>) firestationRepository.findAll();
         if (!allFirestations.isEmpty()) {
@@ -46,7 +43,7 @@ public class FirestationServiceImpl implements FirestationService {
             return allFirestationsDTO;
         } else {
             log.debug("The function getFirestations in FirestationService is ending without founding any firestation.");
-            throw new EmptyFirestationsException("There are no firestations registered.\n");
+            throw new EmptyObjectException("There are no firestations registered.\n");
         }
     }
 
@@ -55,10 +52,10 @@ public class FirestationServiceImpl implements FirestationService {
      *
      * @param id - an int which is the id of firestation object
      * @return the firestation researched, if it's found
-     * @throws FirestationNotFoundException - when the firestation researched is not found
+     * @throws ObjectNotFoundException - when the firestation researched is not found
      */
     @Override
-    public Firestation getFirestationById(int id) throws FirestationNotFoundException {
+    public Firestation getFirestationById(int id) throws ObjectNotFoundException {
         log.debug("The function getFirestationById in FirestationService is beginning.");
         Optional<Firestation> firestation = firestationRepository.findById(id);
         if (firestation.isPresent()) {
@@ -67,7 +64,7 @@ public class FirestationServiceImpl implements FirestationService {
             return firestationFound;
         } else {
             log.debug("The function getFirestationById in FirestationService is ending, no firestation was found.");
-            throw new FirestationNotFoundException("The firestation with Id number " + id + " was not found.\n");
+            throw new ObjectNotFoundException("The firestation with Id number " + id + " was not found.\n");
         }
     }
 
@@ -76,9 +73,9 @@ public class FirestationServiceImpl implements FirestationService {
      *
      * @param address - a string which is one of the firestation's addresses
      * @return the firestations having the researched address attached to its
-     * @throws FirestationNotFoundException - when the address researched is not found in any firestation
+     * @throws ObjectNotFoundException - when the address researched is not found in any firestation
      */
-    public Firestation getFirestationByAddress(String address) throws FirestationNotFoundException {
+    public Firestation getFirestationByAddress(String address) throws ObjectNotFoundException {
         log.debug("The function getFirestationByAddress in FirestationService is beginning.");
         List<Firestation> allFirestations = (List<Firestation>) firestationRepository.findAll();
         List<Firestation> firestationFoundList = allFirestations
@@ -87,7 +84,7 @@ public class FirestationServiceImpl implements FirestationService {
                 .collect(Collectors.toList());
         if (firestationFoundList.isEmpty()) {
             log.debug("The function getFirestationByAddress in FirestationService is ending, no firestation was found.");
-            throw new FirestationNotFoundException("No firestation was found with the address : " + address);
+            throw new ObjectNotFoundException("No firestation was found with the address : " + address);
         } else {
             Firestation firestationFound = firestationFoundList.get(0);
             log.debug("The function getFirestationByAddress in FirestationService is ending, a firestation have been found.");
@@ -118,10 +115,10 @@ public class FirestationServiceImpl implements FirestationService {
      *
      * @param idOrAddress - a string which is either a firestation's number or one of the firestation's addresses
      * @return a FirestationDTO object which contains information about the firestation researched, if it's found
-     * @throws FirestationNotFoundException - when the firestation researched is not found
+     * @throws ObjectNotFoundException - when the firestation researched is not found
      */
     @Override
-    public FirestationDTO getFirestationDTO(String idOrAddress) throws FirestationNotFoundException {
+    public FirestationDTO getFirestationDTO(String idOrAddress) throws ObjectNotFoundException {
         log.debug("The function getFirestationDTO in FirestationService is beginning.");
         Firestation firestation;
         try {
@@ -162,11 +159,11 @@ public class FirestationServiceImpl implements FirestationService {
      *
      * @param mappingFirestationAddressDTO - the id of the firestation in which the address has to be added and the address to add
      * @return a String message indicating the effectuated operations: the number of the firestation created or updated and the address created within this firestation
-     * @throws NotRightFormatToPostException   - when the mapping given in parameter doesn't contain required information
-     * @throws MappingAlreadyExistingException - when the mapping given in parameter already exists
+     * @throws NotRightFormatToPostException  - when the mapping given in parameter doesn't contain required information
+     * @throws ObjectAlreadyExistingException - when the mapping given in parameter already exists
      */
     @Override
-    public String addNewMapping(MappingFirestationAddressDTO mappingFirestationAddressDTO) throws NotRightFormatToPostException, MappingAlreadyExistingException {
+    public String addNewMapping(MappingFirestationAddressDTO mappingFirestationAddressDTO) throws NotRightFormatToPostException, ObjectAlreadyExistingException {
         log.debug("The function addNewMapping in FirestationService is beginning.");
         String message;
         if (mappingFirestationAddressDTO.getAddress() == null) {
@@ -185,7 +182,6 @@ public class FirestationServiceImpl implements FirestationService {
             }
         } else {
             //if the request's body is correct the new mapping could be created
-            log.debug("The given mapping is correct");
             int id = mappingFirestationAddressDTO.getNumber();
             String street = mappingFirestationAddressDTO.getAddress();
             String zip;
@@ -204,26 +200,19 @@ public class FirestationServiceImpl implements FirestationService {
             }
             Address address;
             try {
-                log.debug("looking for the address");
-                System.out.println(street+" - "+zip+" "+city);
                 address = addressService.getAddress(street, zip, city);
-                System.out.println("address id :"+address.getAddressId());
-                System.out.println("street :"+address.getStreet());
-                System.out.println("station id :"+address.getFirestation().getStationId());
-                log.debug(("An address have been found"));
                 //if the address already exists, that means
                 if (address.getFirestation().getStationId() == id) {
-                    throw new MappingAlreadyExistingException("The address \"" + street + " - " + zip + " " + city + "\" was already attached to the firestation number " + id + ".\n");
+                    throw new ObjectAlreadyExistingException("The address \"" + street + " - " + zip + " " + city + "\" was already attached to the firestation number " + id + ".\n");
                 } else {
                     int numberStation = address.getFirestation().getStationId();
-                    throw new MappingAlreadyExistingException("The address \"" + street + " - " + zip + " " + city + "\" is already attached to the firestation number " + numberStation
+                    throw new ObjectAlreadyExistingException("The address \"" + street + " - " + zip + " " + city + "\" is already attached to the firestation number " + numberStation
                             + ",\nso it can't be attached to the firestation number " + id + ".\n"
                             + "If you want to change an address' mapping, please update it.\n");
                 }
-            } catch (AddressNotFoundException e) {
+            } catch (ObjectNotFoundException e) {
                 log.debug("a new address is created");
                 address = new Address(street, zip, city);
-
                 Optional<Firestation> firestation = firestationRepository.findById(id);
                 if (firestation.isPresent()) {
                     Firestation firestationWithNewAddress = firestation.get();
@@ -266,7 +255,7 @@ public class FirestationServiceImpl implements FirestationService {
                 List<Address> addresses = firestation.get().getAttachedAddresses();
                 List<String> addressesToReAttribute = addresses
                         .stream()
-                        .map(a -> a.getStreet() + " - " + a.getZip() + " " + a.getCity())
+                        .map(a -> a.getStreet() + " - " + a.getZip() + " " + a.getCity().toUpperCase())
                         .collect(Collectors.toList());
                 throw new FirestationNonEmptyException("The firestation number " + id + " cannot be deleted,\n" +
                         "some addresses are still attached to this firestation:\n" + addressesToReAttribute.stream().map(s -> s + "\n").collect(Collectors.joining())
@@ -304,29 +293,26 @@ public class FirestationServiceImpl implements FirestationService {
 
 
     @Override
-    public String updateMapping(MappingFirestationAddressDTO mappingFirestationAddressDTO) {
+    public String updateMapping(MappingFirestationAddressDTO mappingFirestationAddressDTO) throws ObjectNotFoundException {
         log.debug("The function updateMapping in FirestationService is beginning.");
-        if (firestationRepository.existsById(mappingFirestationAddressDTO.getNumber())) {
+        int id = mappingFirestationAddressDTO.getNumber();
+        Optional<Firestation> firestationSearched = firestationRepository.findById(id);
+        if (firestationSearched.isPresent()) {
+            Firestation firestation = firestationSearched.get();
             String street = mappingFirestationAddressDTO.getAddress();
-            String zip = mappingFirestationAddressDTO.getZip();
-            if (zip == null) {
-                zip = "97451";
-            }
-            String city = mappingFirestationAddressDTO.getCity();
-            if (city == null) {
-                city = "CULVER";
-            }
+            Address address = addressService.getAddress(street);
             String result = "";
-            Address address = addressService.getAddress(street, zip, city);
             try {
                 result = deleteAddressMapping(address);
             } catch (NothingToDeleteException ignored) {
             }
-            result = result + addNewMapping(mappingFirestationAddressDTO);
+            firestation.addAddress(address);
+            firestationRepository.save(firestation);
+            result = result + "The address " + address.getStreet() + " - " + address.getZip() + " " + address.getCity() + " have been attached to firestation number " + id + ".\n";
             log.debug("The function deleteAddress in FirestationService is ending without any exception.");
             return result;
         } else {
-            throw new FirestationNotFoundException("The Firestation number " + mappingFirestationAddressDTO.getNumber() + " was not found," +
+            throw new ObjectNotFoundException("The Firestation number " + id + " was not found," +
                     "\nso the new mapping couldn't have been done.\n");
         }
     }
@@ -336,10 +322,10 @@ public class FirestationServiceImpl implements FirestationService {
      *
      * @param idOrAddress - a string which is either a firestation's number or one of the firestation's addresses
      * @return a String giving information about what have been deleted
-     * @throws FirestationNotFoundException - when the firestation researched is not found
+     * @throws ObjectNotFoundException - when the firestation researched is not found
      */
     @Override
-    public String deleteFirestationOrAddress(String idOrAddress) throws FirestationNotFoundException {
+    public String deleteFirestationOrAddress(String idOrAddress) throws ObjectNotFoundException {
         log.debug("The function deleteFirestationOrAddress in FirestationService is beginning.");
         String result;
         try {

@@ -22,7 +22,7 @@ public interface UrlsService {
 
     List<FireInfoDTO> getHouseholdsByStation(List<Integer> stationNumbers);
 
-    PersonInfo2DTO getPersonsByName(String firstName, String lastName);
+    List<PersonInfo2DTO> getPersonsByName(String firstName, String lastName);
 
     List<String> getMailsByCity(String city);
 }

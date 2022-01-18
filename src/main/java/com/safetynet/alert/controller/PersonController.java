@@ -6,7 +6,6 @@ import com.safetynet.alert.service.PersonService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,7 +16,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 
 @RestController
@@ -46,20 +44,17 @@ public class PersonController {
     /**
      * Read - Get one person from his first name and last name
      *
-     * @param pathVariables - A map object of two Strings which are first name and last name of the researched person
+     * @param id - A string composed by the person's first name and last name
      * @return a PersonDTO object corresponding to the person researched
      */
-    @ApiOperation(value = "Get a person by its first name and last name.")
-    @GetMapping("/person/{firstName}/{lastName}")
+    @ApiOperation(value = "Get a person by its id.")
+    @GetMapping("/person/{id}")
     @Transactional
-    public ResponseEntity<PersonDTO> getPersonByName(@PathVariable Map<String, String> pathVariables) {
-        log.debug("The function getPersonByName in PersonController is beginning.");
-        String firstName = pathVariables.get("firstName");
-        String lastName = pathVariables.get("lastName");
-        log.debug("firstName and lastName attributes have been got from url.");
-        PersonDTO personResearched = personService.getPersonDTOByName(firstName, lastName);
-        log.info("The person " + firstName.toUpperCase() + " " + lastName.toUpperCase() + " has been found. ");
-        log.debug("The function getPersonByName in PersonController is ending without any exception.\n");
+    public ResponseEntity<PersonDTO> getPerson(@PathVariable String id) {
+        log.debug("The function getPerson in PersonController is beginning.");
+        PersonDTO personResearched = personService.getPersonDTOById(id);
+        log.info("The person " + personResearched.getFirstName().toUpperCase() + " " + personResearched.getLastName().toUpperCase() + " has been found. ");
+        log.debug("The function getPerson in PersonController is ending without any exception.\n");
         return new ResponseEntity<>(personResearched, HttpStatus.OK);
     }
 
@@ -77,8 +72,8 @@ public class PersonController {
         Person newPerson = personService.createPerson(person);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/{firstName}/{lastName}")
-                .buildAndExpand(newPerson.getFirstName(), newPerson.getLastName())
+                .path("/{id}")
+                .buildAndExpand(newPerson.getId())
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
@@ -90,47 +85,41 @@ public class PersonController {
     /**
      * Update - Update an existing person
      *
-     * @param pathVariables - A map object of two Strings which are the first name and the last name of the person to update
-     * @param person        - The person object updated
+     * @param id     - A String composed by the person's first name and last name
+     * @param person - The person object updated
      * @return the person which is updated or NULL if the person wasn't found
      */
-    @ApiOperation(value = "Update a person.")
-    @PutMapping("/person/{firstName}/{lastName}")
+    @ApiOperation(value = "Update a person by its id.")
+    @PutMapping("/person/{id}")
     @Transactional
-    public ResponseEntity<String> updatePersonByName(@PathVariable Map<String, String> pathVariables, @RequestBody PersonDTO person) {
-        log.debug("The function updatePersonByName in PersonController is beginning.");
-        String firstName = pathVariables.get("firstName").toUpperCase();
-        String lastName = pathVariables.get("lastName").toUpperCase();
-        log.debug("Getting firstName and lastName attributes from url.");
-        personService.updatePerson(personService.getPersonDTOByName(firstName, lastName), person);
+    public ResponseEntity<String> updatePerson(@PathVariable String id, @RequestBody PersonDTO person) {
+        log.debug("The function updatePerson in PersonController is beginning.");
+        Person result = personService.updatePerson(personService.getPersonDTOById(id), person);
         URI location = ServletUriComponentsBuilder
                 .fromUri(URI.create("http://localhost:8080/person"))
-                .path("/{firstName}/{lastName}")
-                .buildAndExpand(firstName, lastName)
+                .path("/{id}")
+                .buildAndExpand(result.getId())
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
-        String okUpdated = "The person " + firstName + " " + lastName + " have been updated:\n" + location;
+        String okUpdated = "The person " + result.getFirstName() + " " + result.getLastName() + " have been updated:\n" + location;
         log.debug("The function updatePersonByName in PersonController is ending without any exception.\n");
-        try{
-        return new ResponseEntity<>(okUpdated, httpHeaders, HttpStatus.OK);}catch(ConstraintViolationException e){return new ResponseEntity<>("In the exception", HttpStatus.OK);}
+        return new ResponseEntity<>(okUpdated, httpHeaders, HttpStatus.OK);
     }
 
     /**
      * Delete - Delete a person
      *
-     * @param pathVariables - A map object of two Strings which are the first name and the last name of the person to delete
+     * @param id - A String which is composed by person's first name and last name
      */
-    @ApiOperation(value = "Delete a person by its first name and last name.")
-    @DeleteMapping("/person/{firstName}/{lastName}")
-    public ResponseEntity<String> deletePersonByName(@PathVariable Map<String, String> pathVariables) {
-        log.debug("The function deletePersonByName in PersonController is beginning.");
-        String firstName = pathVariables.get("firstName");
-        String lastName = pathVariables.get("lastName");
-        log.debug("Getting firstName and lastName attributes from url.");
-        personService.deletePersonByName(firstName, lastName);
-        String message = "The person " + firstName.toUpperCase() + " " + lastName.toUpperCase() + " has been deleted.";
-        log.debug("The function deletePersonByName in PersonController is ending without any exception.\n");
+    @ApiOperation(value = "Delete a person by its id.")
+    @DeleteMapping("/person/{id}")
+    @Transactional
+    public ResponseEntity<String> deletePerson(@PathVariable String id) {
+        log.debug("The function deletePerson in PersonController is beginning.");
+        personService.deletePersonById(id);
+        String message = "The person with id " + id + " has been deleted.";
+        log.debug("The function deletePerson in PersonController is ending without any exception.\n");
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 }

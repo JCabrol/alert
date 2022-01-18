@@ -12,9 +12,8 @@ import org.springframework.lang.NonNull;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PersonDTO {
-    @NonNull
+
     private String firstName;
-    @NonNull
     private String lastName;
     private String address;
     private String zip;

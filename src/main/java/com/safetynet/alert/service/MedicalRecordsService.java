@@ -14,9 +14,9 @@ public interface MedicalRecordsService {
      * Get all the medical records presents in data
      *
      * @return a list containing all the medical records
-     * @throws EmptyMedicalRecordsException - when there are no medical records found
+     * @throws EmptyObjectException - when there are no medical records found
      */
-    List<MedicalRecordDTO> getMedicalRecords() throws EmptyMedicalRecordsException;
+    List<MedicalRecordDTO> getMedicalRecords() throws EmptyObjectException;
 
     /**
      * Create a MedicalRecordDTO object containing information about medicalRecords
@@ -33,7 +33,7 @@ public interface MedicalRecordsService {
      * @param lastName  - a String which is the last name of the person whose medical records is researched
      * @return MedicalRecords object concerning the researched person
      */
-    MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws MedicalRecordsNotFoundException;
+    MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws ObjectNotFoundException;
 
     MedicalRecords addNewMedicalRecords(MedicalRecordDTO medicalRecords) throws NotRightFormatToPostException;
 
@@ -46,9 +46,9 @@ public interface MedicalRecordsService {
      * @return a String containing the information which have been updated
      * @throws NotTheSamePersonException - when the information to update contains a different first name or a different last name
      * @throws NothingToUpdateException  - when there are no information to update in the medicalRecordDTO
-     * @throws PersonNotFoundException   - when no person is found with the given firstName and lastName
+     * @throws ObjectNotFoundException   - when no person is found with the given firstName and lastName
      */
-    String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, PersonNotFoundException;
+    String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, ObjectNotFoundException;
 
 
     /**
@@ -58,8 +58,8 @@ public interface MedicalRecordsService {
      * @param lastName  -a String which is the last name of the person whose medical records have to be deleted
      * @return a String which indicates the person whose medical records have been deleted
      * @throws NothingToDeleteException - when the medical records to delete don't exist anyway
-     * @throws PersonNotFoundException  - when no person is found with the given firstName and lastName
+     * @throws ObjectNotFoundException  - when no person is found with the given firstName and lastName
      */
-    String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, PersonNotFoundException;
+    String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, ObjectNotFoundException;
 }
 

@@ -1,10 +1,8 @@
 package com.safetynet.alert.service;
 
-import com.safetynet.alert.exceptions.AddressNotFoundException;
+import com.safetynet.alert.exceptions.ObjectNotFoundException;
 import com.safetynet.alert.model.Address;
 import com.safetynet.alert.repository.AddressRepository;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,8 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
 
 @Slf4j
 @Service
@@ -29,10 +25,10 @@ public class AddressServiceImpl implements AddressService {
      * @param zip    - a String corresponding to the zip of the researched address
      * @param city   - a String corresponding to the city of the researched address
      * @return an address object
-     * @throws AddressNotFoundException When the researched address is not found
+     * @throws ObjectNotFoundException When the researched address is not found
      */
     @Override
-    public Address getAddress(String street, String zip, String city) throws AddressNotFoundException {
+    public Address getAddress(String street, String zip, String city) throws ObjectNotFoundException {
         log.debug("The function getAddress in AddressService is beginning.");
         List<Address> addressesResearched = (List<Address>) addressRepository.findAll();
         List<Address> addressesFound =
@@ -45,7 +41,7 @@ public class AddressServiceImpl implements AddressService {
 
         if (addressesFound.isEmpty()) {
             log.debug("The function getAddress in AddressService is ending, no address was found.");
-            throw new AddressNotFoundException("The address " + street + " - " + zip + " " + city + " was not found.\n");
+            throw new ObjectNotFoundException("The address " + street + " - " + zip + " " + city + " was not found.\n");
         } else {
             Address addressFound = addressesFound.get(0);
             log.debug("The function getAddress in AddressService is ending, an address was found");
@@ -58,10 +54,10 @@ public class AddressServiceImpl implements AddressService {
      *
      * @param street - a String corresponding to the street and number of the researched address
      * @return an address object
-     * @throws AddressNotFoundException When the researched address is not found
+     * @throws ObjectNotFoundException When the researched address is not found
      */
     @Override
-    public Address getAddress(String street) throws AddressNotFoundException {
+    public Address getAddress(String street) throws ObjectNotFoundException {
         log.debug("The function getAddress in AddressService is beginning.");
         List<Address> addressesResearched = (List<Address>) addressRepository.findAll();
         List<Address> addressesFound =
@@ -72,7 +68,7 @@ public class AddressServiceImpl implements AddressService {
 
         if (addressesFound.isEmpty()) {
             log.debug("The function getAddress in AddressService is ending, no address was found.");
-            throw new AddressNotFoundException("The address " + street + " was not found.\n");
+            throw new ObjectNotFoundException("The address " + street + " was not found.\n");
         } else {
             Address addressFound = addressesFound.get(0);
             log.debug("The function getAddress in AddressService is ending, an address was found");

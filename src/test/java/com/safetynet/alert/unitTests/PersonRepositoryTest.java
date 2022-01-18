@@ -3,13 +3,16 @@ package com.safetynet.alert.unitTests;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.PersonRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Optional;
+import javax.transaction.Transactional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,32 +28,67 @@ public class PersonRepositoryTest {
     @Autowired
     private PersonRepository personRepository;
 
-    @Test
-    public void findByFirstNameAndLastNameTest() {
-        Optional<Person> personTest = personRepository.findByFirstNameAndLastName("FIRSTNAME1", "LASTNAME1");
-        assertTrue(personTest.isPresent());
-//        assertThat(personTest.get().getAddress()).isEqualTo("1 main street");
-//        assertThat(personTest.get().getCity()).isEqualTo("CITY1");
-//        assertThat(personTest.get().getZip()).isEqualTo(1111);
-        assertThat(personTest.get().getPhoneNumber()).isEqualTo("111-111-1111");
-        assertThat(personTest.get().getMail()).isEqualTo("person1@mail.com");
-    }
 
-    @Test
-    public void findByFirstNameAndLastNameNotExistingTest() {
-        Optional<Person> personTest = personRepository.findByFirstNameAndLastName("FIRSTNAME5", "LASTNAME5");
-        assertFalse(personTest.isPresent());
-    }
+    @Nested
+    @DisplayName("FindByFirstNameAndLastName tests:")
+    class FindByFirstNameAndLastNameTest {
 
-    @Test
-    public void findByFirstNameAndLastNameOnlyLastNameExistingTest() {
-        Optional<Person> personTest = personRepository.findByFirstNameAndLastName("FIRSTNAME5", "LASTNAME1");
-        assertFalse(personTest.isPresent());
-    }
+        @DisplayName("GIVEN an existing person " +
+                "WHEN the function findByFirstNameAndLastName is called " +
+                "THEN it returns a list containing this person.")
+        @Transactional
+        @Test
+        public void findByFirstNameAndLastNameTest() {
+            //GIVEN
+            //WHEN
+            List<Person> personTest = personRepository.findByFirstNameAndLastName("firstName1", "lastName1");
+            //THEN
+            assertFalse(personTest.isEmpty());
+            assertThat(personTest.size()).isEqualTo(1);
+            assertThat(personTest.get(0).getAddress().getStreet()).isEqualTo("addressTest1");
+            assertThat(personTest.get(0).getAddress().getZip()).isEqualTo("11111");
+            assertThat(personTest.get(0).getAddress().getCity()).isEqualTo("cityTest1");
+            assertThat(personTest.get(0).getPhoneNumber()).isEqualTo("1111111111");
+            assertThat(personTest.get(0).getMail()).isEqualTo("person1@mail.com");
+        }
 
-    @Test
-    public void findByFirstNameAndLastNameOnlyFirstNameExistingTest() {
-        Optional<Person> personTest = personRepository.findByFirstNameAndLastName("FIRSTNAME1", "LASTNAME5");
-        assertFalse(personTest.isPresent());
+        @DisplayName("GIVEN a non-existing person " +
+                "WHEN the function findByFirstNameAndLastName is called " +
+                "THEN it returns an empty list.")
+        @Transactional
+        @Test
+        public void findByFirstNameAndLastNameNotExistingTest() {
+            //GIVEN
+            //WHEN
+            List<Person> personTest = personRepository.findByFirstNameAndLastName("FirstNameTest0", "LastNameTest0");
+            //THEN
+            assertTrue(personTest.isEmpty());
+        }
+
+        @DisplayName("GIVEN a non-existing first name with an existing last name" +
+                "WHEN the function findByFirstNameAndLastName is called " +
+                "THEN it returns an empty list.")
+        @Transactional
+        @Test
+        public void findByFirstNameAndLastNameOnlyLastNameExistingTest() {
+            //GIVEN
+            //WHEN
+            List<Person> personTest = personRepository.findByFirstNameAndLastName("FirstNameTest0", "LastNameTest1");
+            //THEN
+            assertTrue(personTest.isEmpty());
+        }
+
+        @DisplayName("GIVEN an existing first name with a non-existing last name" +
+                "WHEN the function findByFirstNameAndLastName is called " +
+                "THEN it returns an empty list.")
+        @Transactional
+        @Test
+        public void findByFirstNameAndLastNameOnlyFirstNameExistingTest() {
+            //GIVEN
+            //WHEN
+            List<Person> personTest = personRepository.findByFirstNameAndLastName("FirstNameTest1", "LastNameTest0");
+            //THEN
+            assertTrue(personTest.isEmpty());
+        }
     }
 }

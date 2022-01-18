@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -44,7 +44,7 @@ public class PersonServiceTest {
     @MockBean
     private PersonRepository personRepository;
 
-    @Mock
+    @MockBean
     private AddressService addressService;
 
     @Nested
@@ -60,10 +60,10 @@ public class PersonServiceTest {
             //a list containing 3 persons
             ArrayList<Person> AllPersonsTest = new ArrayList<>();
             for (int numberOfPersonsTest = 0; numberOfPersonsTest < 3; numberOfPersonsTest++) {
-                Person person = new Person(numberOfPersonsTest,
+                Person person = new Person("idtest"+numberOfPersonsTest,
                         "FIRSTNAME" + numberOfPersonsTest,
                         "LASTNAME" + numberOfPersonsTest,
-                        new Address(" main street", "8456" + numberOfPersonsTest, "CITY" + numberOfPersonsTest),
+                        new Address(" main street", "1234" + numberOfPersonsTest, "CITY" + numberOfPersonsTest),
                         "123456789" + numberOfPersonsTest,
                         "person" + numberOfPersonsTest + "@mail.com",
                         new MedicalRecords());
@@ -82,7 +82,7 @@ public class PersonServiceTest {
 
         @DisplayName("GIVEN an empty list returned by personRepository " +
                 "WHEN function getPersons() is called " +
-                "THEN an EmptyPersonsException is thrown.")
+                "THEN an EmptyObjectException should be thrown with the expected error message.")
         @Test
         public void getPersonsWhenEmptyTest() {
             //GIVEN
@@ -91,121 +91,189 @@ public class PersonServiceTest {
             //WHEN
             // the function getPersons() is called
             //THEN
-            // an EmptyPersonsException is thrown
-            assertThrows(EmptyPersonsException.class, () -> personService.getPersons());
+            // an EmptyObjectException should be thrown with the expected error message
+           Exception exception = assertThrows(EmptyObjectException.class, () -> personService.getPersons());
+            assertEquals("There are no persons registered.\n", exception.getMessage());
             verify(personRepository, Mockito.times(1)).findAll();
         }
     }
 
-    //    @Nested
-//    @DisplayName("getPersonById() tests:")
-//    class GetPersonByIdTest {
-//
-//        @Test
-//        @DisplayName("GIVEN an existing person " +
-//                "WHEN the function getPersonById() is called " +
-//                "THEN the person should be found.")
-//        void getPersonByIdTest() {
-//            // GIVEN
-//            //a person with ID = 0 has to be returned when the personRepository mock is called with the function findById
-//            Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-//                    "cityTest", 1111, "phoneNumberTest", "mailTest", new MedicalRecords());
-//            doReturn(Optional.of(person)).when(personRepository).findById(0);
-//            // WHEN
-//            //the tested function  getPersonById is called with parameter id = 0
-//            Person returnedPerson = personService.getPersonById(0);
-//            // THEN
-//            //the person should be found
-//            assertThat(returnedPerson).isEqualTo(person);
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a non existing person " +
-//                "WHEN the function getPersonById() is called " +
-//                "THEN a PersonNotFoundException should be thrown.")
-//        void getPersonByIdNotExistingTest() {
-//            // GIVEN
-//            //an empty result has to be returned when the personRepository mock is called with the function findById
-//            doReturn(Optional.empty()).when(personRepository).findById(1);
-//            //WHEN
-//            //the tested function getPersonById is called with parameter id = 1
-//            //THEN
-//            //a PersonNotFoundException should be thrown
-//            assertThrows(PersonNotFoundException.class, () -> personService.getPersonById(1));
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("getPersonByName() tests:")
-//    class GetPersonByNameTest {
-//
-//        @Test
-//        @DisplayName("GIVEN an existing person " +
-//                "WHEN the function getPersonByName() is called " +
-//                "THEN the person should be found.")
-//        void getPersonByNameTest() {
-//            // GIVEN
-//            //a person with FirstNameTest and LastNameTest has to be returned when the personRepository mock is called with the function findById
-//            Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-//                    "cityTest", 1111, "phoneNumberTest", "mailTest", new MedicalRecords());
-//            doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
-//            // WHEN
-//            //the tested function  getPersonByName is called with FirstNameTest and LastNameTest
-//            Person returnedPerson = personService.getPersonByName("FirstNameTest", "LastNameTest");
-//            // THEN
-//            //the person should be found
-//            assertThat(returnedPerson).isEqualTo(person);
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a non existing person " +
-//                "WHEN the function getPersonByName() is called " +
-//                "THEN a PersonNotFoundException should be thrown.")
-//        void getPersonByIdNotExistingTest() {
-//            // GIVEN
-//            ////an empty result has to be returned when the personRepository mock is called with the function findByFirstNameAndLastName
-//            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName("firstName", "lastName");
-//            // WHEN
-//            //the tested function getPersonByName is called
-//            // THEN
-//            //a PersonNotFoundException should be thrown
-//            assertThrows(PersonNotFoundException.class, () -> personService.getPersonByName("firstName", "lastName"));
-//        }
-//    }
-//
+    @Nested
+    @DisplayName("getPersonsDTO() tests:")
+    class getPersonsDTOTest {
+
+        @DisplayName("GIVEN persons returned by personRepository " +
+                "WHEN function getPersonsDTO() is called " +
+                "THEN it returns a list with the corresponding personsDTO.")
+        @Test
+        public void getPersonsDTOWhenNonEmptyTest() {
+            //GIVEN
+            //a list containing 3 persons
+            ArrayList<Person> AllPersonsTest = new ArrayList<>();
+            for (int numberOfPersonsTest = 0; numberOfPersonsTest < 3; numberOfPersonsTest++) {
+                Person person = new Person("idtest"+numberOfPersonsTest,
+                        "FIRSTNAME" + numberOfPersonsTest,
+                        "LASTNAME" + numberOfPersonsTest,
+                        new Address(" main street", "1234" + numberOfPersonsTest, "CITY" + numberOfPersonsTest),
+                        "123456789" + numberOfPersonsTest,
+                        "person" + numberOfPersonsTest + "@mail.com",
+                        new MedicalRecords());
+                AllPersonsTest.add(person);
+            }
+            when(personRepository.findAll()).thenReturn(AllPersonsTest);
+            //WHEN
+            //the tested function getPersons is called
+            List<PersonDTO> result = personService.getPersonsDTO();
+            //THEN
+            //the result should contain 3 persons and should be the same as the list created first
+            assertThat(result.size()).isEqualTo(3);
+            assertThat(result.get(0).getFirstName()).isEqualToIgnoringCase(AllPersonsTest.get(0).getFirstName());
+            assertThat(result.get(1).getFirstName()).isEqualToIgnoringCase(AllPersonsTest.get(1).getFirstName());
+            assertThat(result.get(2).getFirstName()).isEqualToIgnoringCase(AllPersonsTest.get(2).getFirstName());
+            assertThat(result.get(0).getLastName()).isEqualToIgnoringCase(AllPersonsTest.get(0).getLastName());
+            assertThat(result.get(1).getLastName()).isEqualToIgnoringCase(AllPersonsTest.get(1).getLastName());
+            assertThat(result.get(2).getLastName()).isEqualToIgnoringCase(AllPersonsTest.get(2).getLastName());
+            verify(personRepository, Mockito.times(1)).findAll();
+        }
+
+        @DisplayName("GIVEN an empty list returned by personRepository " +
+                "WHEN function getPersonsDTO() is called " +
+                "THEN an EmptyObjectException should be thrown with the expected error message.")
+        @Test
+        public void getPersonsDTOWhenEmptyTest() {
+            //GIVEN
+            //an empty list of persons
+            when(personRepository.findAll()).thenReturn(new ArrayList<>());
+            //WHEN
+            // the function getPersonsDTO() is called
+            //THEN
+            // an EmptyObjectException should be thrown with the expected error message
+            Exception exception = assertThrows(EmptyObjectException.class, () -> personService.getPersonsDTO());
+            assertEquals("There are no persons registered.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findAll();
+        }
+    }
+
+        @Nested
+    @DisplayName("getPersonById() tests:")
+    class GetPersonByIdTest {
+
+        @Test
+        @DisplayName("GIVEN an existing person " +
+                "WHEN the function getPersonById() is called " +
+                "THEN the person should be found.")
+        void getPersonByIdTest() {
+            // GIVEN
+            //an existing person
+            Person person  = new Person("idTest", "FIRSTNAME", "LASTNAME", new Address(" address test", "1234 test", "CITYTEST" ), "1234567890" , "person@mail.com", new MedicalRecords());
+            doReturn(Optional.of(person)).when(personRepository).findById("idTest");
+            // WHEN
+            //the function getPersonById() is called
+            Person returnedPerson = personService.getPersonById("idTest");
+            // THEN
+            //the person should be found
+            assertThat(returnedPerson).isEqualTo(person);
+            verify(personRepository, Mockito.times(1)).findById("idTest");
+        }
+
+        @Test
+        @DisplayName("GIVEN a non-existing person " +
+                "WHEN the function getPersonById() is called " +
+                "THEN an ObjectNotFoundException should be thrown with the expected error message.")
+        void getPersonByIdNotExistingTest() {
+            // GIVEN
+            //a non-existing person
+            doReturn(Optional.empty()).when(personRepository).findById("idTest");
+            //WHEN
+            //the function getPersonById() is called
+            //THEN
+            //an ObjectNotFoundException should be thrown with the expected error message
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.getPersonById("idTest"));
+            assertEquals("The person with id idTest was not found.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findById("idTest");
+        }
+    }
+
+    @Nested
+    @DisplayName("getPersonDTOById() tests:")
+    class GetPersonDTOByIdTest {
+
+        @Test
+        @DisplayName("GIVEN an existing person " +
+                "WHEN the function getPersonDTOById() is called " +
+                "THEN the corresponding personDTO should be returned.")
+        void getPersonDTOByIdTest() {
+            // GIVEN
+            //an existing person
+            Person person  = new Person("idTest", "FIRSTNAME", "LASTNAME", new Address(" address test", "1234 test", "CITYTEST" ), "1234567890" , "person@mail.com", new MedicalRecords());
+            doReturn(Optional.of(person)).when(personRepository).findById("idTest");
+            // WHEN
+            //the function getPersonById() is called
+            PersonDTO returnedPerson = personService.getPersonDTOById("idTest");
+            // THEN
+            //the corresponding personDTO should be returned
+            assertThat(returnedPerson.getFirstName()).isEqualTo(person.getFirstName());
+            assertThat(returnedPerson.getLastName()).isEqualTo(person.getLastName());
+            assertThat(returnedPerson.getMail()).isEqualTo(person.getMail());
+            assertThat(returnedPerson.getPhoneNumber()).isEqualTo(person.getPhoneNumber());
+            assertThat(returnedPerson.getAddress()).isEqualTo(person.getAddress().getStreet());
+            assertThat(returnedPerson.getZip()).isEqualTo(person.getAddress().getZip());
+            assertThat(returnedPerson.getCity()).isEqualTo(person.getAddress().getCity());
+            verify(personRepository, Mockito.times(1)).findById("idTest");
+        }
+
+        @Test
+        @DisplayName("GIVEN a non-existing person " +
+                "WHEN the function getPersonDTOById() is called " +
+                "THEN an ObjectNotFoundException should be thrown with the expected error message.")
+        void getPersonDTOByIdNotExistingTest() {
+            // GIVEN
+            //a non-existing person
+            doReturn(Optional.empty()).when(personRepository).findById("idTest");
+            //WHEN
+            //the function getPersonById() is called
+            //THEN
+            //an ObjectNotFoundException should be thrown with the expected error message
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.getPersonDTOById("idTest"));
+            assertEquals("The person with id idTest was not found.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findById("idTest");
+        }
+    }
+
+
+
     @Nested
     @DisplayName("createPerson() tests:")
     class CreatePersonTest {
 
         @Test
-        @DisplayName("GIVEN a person with all informations " +
+        @DisplayName("GIVEN a personDTO with all information and a non-existing address " +
                 "WHEN the function createPerson() is called " +
-                "THEN the person returned is not null " +
-                "and the firstname, lastname and city have been put to upper case " +
-                "and other fields are not changed.")
+                "THEN the person returned should correspond.")
         void createPersonWithAllInformationAndNonExistingAddressTest() {
             // GIVEN
-            //a person with all information has to be returned when the personRepository mock is called with the function save
+            // a personDTO with all information and a non-existing address
             Address address = new Address("address test", "11111", "CITYTEST");
-            Person person = new Person(0,
+            Person person = new Person("idTest",
                     "FIRSTNAMETEST",
                     "LASTNAMETEST",
                     address,
                     "1234567890",
                     "personTest@mail.com",
                     new MedicalRecords());
-            doReturn(person).when(personRepository).save(person);
-            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
-            doThrow(AddressNotFoundException.class).when(addressService).getAddress("address test", "11111", "cityTest");
-            // WHEN
-            //the tested function createPerson is called
-            Person returnedPerson = personService.createPerson(new PersonDTO("FirstNameTest",
+            PersonDTO personDTO = new PersonDTO("FirstNameTest",
                     "LastNameTest",
                     "address test", "11111", "cityTest",
                     "1234567890",
-                    "personTest@mail.com"));
+                    "personTest@mail.com");
+            doReturn(person).when(personRepository).save(any(Person.class));
+            doReturn(new ArrayList<>()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            doThrow(ObjectNotFoundException.class).when(addressService).getAddress("address test", "11111", "CITYTEST");
+            // WHEN
+            //the tested function createPerson is called
+            Person returnedPerson = personService.createPerson(personDTO);
             // THEN
-            //the saved person should be returned
+            //the person returned should correspond.
             assertThat(returnedPerson).isNotNull();
             //his first name, last name and city should have been put to upper case
             assertThat(returnedPerson.getFirstName()).isEqualTo("FIRSTNAMETEST");
@@ -216,39 +284,39 @@ public class PersonServiceTest {
             assertThat(returnedPerson.getAddress().getZip()).isEqualTo("11111");
             assertThat(returnedPerson.getPhoneNumber()).isEqualTo("1234567890");
             assertThat(returnedPerson.getMail()).isEqualTo("personTest@mail.com");
-            verify(personRepository, Mockito.times(1)).save(person);
-            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
+            verify(personRepository, Mockito.times(1)).save(any(Person.class));
+            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            verify(addressService, Mockito.times(1)).getAddress("address test", "11111", "CITYTEST");
         }
 
         @Test
-        @DisplayName("GIVEN a person with all informations " +
+        @DisplayName("GIVEN a personDTO with all information and an existing address " +
                 "WHEN the function createPerson() is called " +
-                "THEN the person returned is not null " +
-                "and the firstname, lastname and city have been put to upper case " +
-                "and other fields are not changed.")
+                "THEN the person returned should correspond.")
         void createPersonWithAllInformationAndExistingAddressTest() {
             // GIVEN
-            //a person with all information has to be returned when the personRepository mock is called with the function save
+            //a personDTO with all information and an existing address
             Address address = new Address("address test", "11111", "CITYTEST");
-            Person person = new Person(0,
+            Person person = new Person("idTest",
                     "FIRSTNAMETEST",
                     "LASTNAMETEST",
                     address,
                     "1234567890",
                     "personTest@mail.com",
                     new MedicalRecords());
-            doReturn(person).when(personRepository).save(person);
-            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
-            doReturn(address).when(addressService).getAddress("address test", "11111", "cityTest");
-            // WHEN
-            //the tested function createPerson is called
-            Person returnedPerson = personService.createPerson(new PersonDTO("FirstNameTest",
+            PersonDTO personDTO = new PersonDTO("FirstNameTest",
                     "LastNameTest",
                     "address test", "11111", "cityTest",
                     "1234567890",
-                    "personTest@mail.com"));
+                    "personTest@mail.com");
+            doReturn(person).when(personRepository).save(any(Person.class));
+            doReturn(new ArrayList<>()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            doReturn(address).when(addressService).getAddress("address test", "11111", "CITYTEST");
+            // WHEN
+            //the tested function createPerson is called
+            Person returnedPerson = personService.createPerson(personDTO);
             // THEN
-            //the saved person should be returned
+            //the person returned should correspond.
             assertThat(returnedPerson).isNotNull();
             //his first name, last name and city should have been put to upper case
             assertThat(returnedPerson.getFirstName()).isEqualTo("FIRSTNAMETEST");
@@ -259,9 +327,9 @@ public class PersonServiceTest {
             assertThat(returnedPerson.getAddress().getZip()).isEqualTo("11111");
             assertThat(returnedPerson.getPhoneNumber()).isEqualTo("1234567890");
             assertThat(returnedPerson.getMail()).isEqualTo("personTest@mail.com");
-            //The functions save and findByFirstNameAndLastName in personRepository should be both called one time
-            verify(personRepository, Mockito.times(1)).save(person);
-            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
+            verify(personRepository, Mockito.times(1)).save(any(Person.class));
+            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            verify(addressService, Mockito.times(1)).getAddress("address test", "11111", "CITYTEST");
         }
 
         @Test
@@ -272,50 +340,98 @@ public class PersonServiceTest {
                 "and other fields are empty.")
         void createPersonWithOnlyRequiredInformationTest() {
             // GIVEN
-            //a person with only firstName and lastName has to be returned when the personRepository mock is called with the function save
-            Person person = new Person("FirstNameTest", "LastNameTest");
-            PersonDTO personDTO = new PersonDTO("FirstNameTest", "LastNameTest", null, null, null, null, null);
-            doReturn(person).when(personRepository).save(any());
-            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
+            // a personDTO with all information and a non-existing address
+            Person person = new Person("FIRSTNAMETEST", "LASTNAMETEST");
+            PersonDTO personDTO = new PersonDTO("FirstNameTest",
+                    "LastNameTest",
+                    null, null, null,
+                    null,
+                    null);
+            doReturn(person).when(personRepository).save(any(Person.class));
+            doReturn(new ArrayList<>()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
             // WHEN
             //the tested function createPerson is called
             Person returnedPerson = personService.createPerson(personDTO);
             // THEN
-            //the created person should be returned
+            //the person returned should correspond.
             assertThat(returnedPerson).isNotNull();
-            //his first name and last name should have been put to upper case
             assertThat(returnedPerson.getFirstName()).isEqualTo("FIRSTNAMETEST");
             assertThat(returnedPerson.getLastName()).isEqualTo("LASTNAMETEST");
-            //other fields should be empty
-            assertThat(returnedPerson.getId()).isEqualTo(0);
-            assertThat(returnedPerson.getAddress().getCity()).isNull();
-            assertThat(returnedPerson.getAddress().getStreet()).isNull();
-            assertThat(returnedPerson.getAddress().getZip()).isNull();
-            assertThat(returnedPerson.getPhoneNumber()).isNull();
-            assertThat(returnedPerson.getMail()).isNull();
-            //the function save from personRepository should be called one time
-            verify(personRepository, Mockito.times(1)).save(any());
-            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
+            assertThat(returnedPerson.getAddress()).isEqualTo(null);
+            assertThat(returnedPerson.getPhoneNumber()).isEqualTo(null);
+            assertThat(returnedPerson.getMail()).isEqualTo(null);
+            verify(personRepository, Mockito.times(1)).save(any(Person.class));
+            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            verify(addressService, Mockito.times(0)).getAddress(anyString(), anyString(), anyString());
         }
 
     @Test
     @DisplayName("GIVEN a person already existing " +
             "WHEN the function createPerson() is called " +
-            "THEN a PersonAlreadyExitingException should be thrown")
+            "THEN an ObjectAlreadyExitingException should be thrown")
     void createPersonAlreadyExistingTest() {
         // GIVEN
         //a person is already existing
-        Person person = new Person("FirstNameTest", "LastNameTest");
-        PersonDTO personDTO = new PersonDTO("FirstNameTest", "LastNameTest", null, null, null, null, null);
-        doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
+        Address address = new Address("address test", "11111", "CITYTEST");
+        Person person = new Person("idTest",
+                "FIRSTNAMETEST",
+                "LASTNAMETEST",
+                address,
+                "1234567890",
+                "personTest@mail.com",
+                new MedicalRecords());
+        PersonDTO personDTO = new PersonDTO("FirstNameTest",
+                "LastNameTest",
+                "address test", "11111", "cityTest",
+                "1234567890",
+                "personTest@mail.com");
+        doReturn(List.of(person)).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
         // WHEN
         //the tested function createPerson is called
         // THEN
-        //a PersonAlreadyExitingException should be thrown
-        assertThrows(PersonAlreadyExistingException.class, () -> personService.createPerson(personDTO));
+        //an ObjectAlreadyExitingException should be thrown
+        Exception exception = assertThrows(ObjectAlreadyExistingException.class, () -> personService.createPerson(personDTO));
+        assertEquals("The person FIRSTNAMETEST LASTNAMETEST was already existing, so it couldn't have been created.\n", exception.getMessage());
         verify(personRepository, Mockito.times(0)).save(any());
-        verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
+        verify(personRepository, Mockito.times(2)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
     }
+
+        @Test
+        @DisplayName("GIVEN a different person with the same name " +
+                "WHEN the function createPerson() is called " +
+                "THEN the person should be created")
+        void createPersonSameNameTest() {
+            // GIVEN
+            //a person is already existing
+            Address address = new Address("address test", "11111", "CITYTEST");
+            Person person = new Person("idTest",
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    address,
+                    "1234567890",
+                    "personTest@mail.com",
+                    new MedicalRecords());
+            PersonDTO personDTO = new PersonDTO("FirstNameTest",
+                    "LastNameTest",
+                    "address test2", "11111", "cityTest",
+                    null,
+                    null);
+            doReturn(List.of(person)).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            // WHEN
+            //the tested function createPerson is called
+            Person returnedPerson = personService.createPerson(personDTO);
+            // THEN
+            //the person should be created
+            assertThat(returnedPerson).isNotNull();
+            assertThat(returnedPerson.getFirstName()).isEqualTo("FIRSTNAMETEST");
+            assertThat(returnedPerson.getLastName()).isEqualTo("LASTNAMETEST");
+            assertThat(returnedPerson.getAddress()).isNotEqualTo(address);
+            assertThat(returnedPerson.getPhoneNumber()).isEqualTo(null);
+            assertThat(returnedPerson.getMail()).isEqualTo(null);
+            verify(personRepository, Mockito.times(1)).save(any(Person.class));
+            verify(personRepository, Mockito.times(2)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            verify(addressService, Mockito.times(1)).getAddress(anyString(), anyString(), anyString());
+        }
 
         @Test
         @DisplayName("GIVEN a person without required informations " +
@@ -329,183 +445,289 @@ public class PersonServiceTest {
             //the tested function createPerson is called
             // THEN
             //a NotRightFormatToPostException should be thrown
-            assertThrows(NotRightFormatToPostException.class, () -> personService.createPerson(personDTO));
-            //
+           Exception exception = assertThrows(NotRightFormatToPostException.class, () -> personService.createPerson(personDTO));
+            assertEquals("There is something missing in the request :\nto post a new person there should be at least a \"firstName\" and a \"lastName\" fields.\n", exception.getMessage());
             verify(personRepository, Mockito.times(0)).save(any());
             verify(personRepository, Mockito.times(0)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
         }
-
     }
-//
-//    @Nested
-//    @DisplayName("updatePerson() tests:")
-//    class UpdatePersonTest {
-//
-//        @Test
-//        @DisplayName("GIVEN a person with all updatable informations " +
-//                "WHEN the function updatePerson() is called " +
-//                "THEN the informations have been changed for the new informations and the message returned contains person's name and all items and information changed.")
-//        void updatePersonWithAllInformationTest() {
-//            // GIVEN
-//            //a person with all updatable information
-//            Person existingPerson = new Person(0, "FirstNameTest", "LastNameTest", "address test original",
-//                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original", new MedicalRecords());
-//            Person personWithUpdatingInformation = new Person(1, "FirstNameTest", "LastNameTest", "address test changed",
-//                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed", new MedicalRecords());
-//            doReturn(personWithUpdatingInformation).when(personRepository).save(any());
-//            // WHEN
-//            //the function updatePerson() is called
-//            String result = personService.updatePerson(existingPerson, personWithUpdatingInformation);
-//            // THEN
-//            //the information have been changed for the new information and the message returned contains person's name and all items and information changed
-//            assertThat(result).isNotNull();
-//            assertThat(result).contains("address").contains("city").contains("zip").contains("phone number").contains("mail");
-//            assertThat(result).contains("FIRSTNAMETEST").contains("LASTNAMETEST").contains("changed");
-//            assertThat(result).doesNotContain("original");
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a person with only some updatable informations " +
-//                "WHEN the function updatePerson() is called " +
-//                "THEN the given informations have been updated and the others are still the same and the returned message contains person's name and only updated items and informations.")
-//        void updatePersonWithOnlySomeInformationTest() {
-//            // GIVEN
-//            //a person with all updatable information
-//            Person existingPerson = new Person(0, "FirstNameTest", "LastNameTest", "address test original",
-//                    "cityTest original", 1111, "phoneNumberTest original", "mailTest original", new MedicalRecords());
-//            Person personToUpdate = new Person();
-//            personToUpdate.setFirstName("FirstNameTest");
-//            personToUpdate.setLastName("LastNameTest");
-//            personToUpdate.setAddress("address test changed");
-//            personToUpdate.setMail("mailTest changed");
-//            doReturn(personToUpdate).when(personRepository).save(any());
-//            // WHEN
-//            //the function updatePerson() is called
-//            String result = personService.updatePerson(existingPerson, personToUpdate);
-//            // THEN
-//            // the given information have been updated and the others are still the same and the returned message contains person's name and only updated items and information
-//            assertThat(result).isNotNull();
-//            assertThat(result).contains("address").contains("mail");
-//            assertThat(result).doesNotContain("city").doesNotContain("zip").doesNotContain("phone number");
-//            assertThat(result).contains("FIRSTNAMETEST").contains("LASTNAMETEST").contains("address test changed").contains("mailTest changed");
-//            assertThat(result).doesNotContain("original");
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a different firstName or lastName between the person to update and the given informations to update " +
-//                "WHEN the function updatePerson() is called " +
-//                "THEN a NotTheSamePersonException should be thrown")
-//        void updatePersonWithDifferentNameTest() {
-//            // GIVEN
-//            // a different firstName or lastName between the person to update and the given information to update
-//            Person person = new Person("FirstNameTest", "LastNameTest");
-//            Person personWithUpdatingInformation = new Person(1, "FirstNameTest2", "LastNameTest2", "address test changed",
-//                    "cityTest changed", 2222, "phoneNumberTest changed", "mailTest changed", new MedicalRecords());
-//            doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            // WHEN
-//            //the function updatePerson() is called
-//            // THEN
-//            //a NotTheSamePersonException should be thrown
-//            assertThrows(NotTheSamePersonException.class, () -> personService.updatePerson(person, personWithUpdatingInformation));
-//        }
-//
-//
-//        @Test
-//        @DisplayName("GIVEN a person without any information to update " +
-//                "WHEN the function updatePerson() is called " +
-//                "THEN a NothingToUpdateException should be thrown")
-//        void updatePersonWithoutUpdatableInformationTest() {
-//            // GIVEN
-//            //  a person without any information to update
-//            Person person = new Person("FirstNameTest", "LastNameTest");
-//            Person personWithUpdatingInformation = new Person();
-//            doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            // WHEN
-//            //the function updatePerson() is called
-//            // THEN
-//            //a NothingToUpdateException should be thrown
-//            assertThrows(NothingToUpdateException.class, () -> personService.updatePerson(person, personWithUpdatingInformation));
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("deletePersonByName() tests:")
-//    class deletePersonByNameTest {
-//
-//        @Test
-//        @DisplayName("GIVEN an existing person " +
-//                "WHEN the function deletePersonByName() is called with its first name and last name " +
-//                "THEN the repository methods findByFirstNameAndLastName and deleteById are both invocated one time with right arguments.")
-//        void existPersonByNameExistingTest() {
-//            // GIVEN
-//            // an existing person
-//            Person person = new Person(0, "FirstNameTest", "LastNameTest", "address test",
-//                    "cityTest", 1111, "phoneNumberTest", "mailTest", new MedicalRecords());
-//            doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            doNothing().when(personRepository).deleteById(any());
-//            // WHEN
-//            //the tested function deletePersonByName() is called with its first name and last name
-//            personService.deletePersonByName("FirstNameTest", "LastNameTest");
-//            // THEN
-//            // the repository methods findByFirstNameAndLastName and deleteById are both invocated one time with right arguments
-//            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST", "LASTNAMETEST");
-//            verify(personRepository, Mockito.times(1)).deleteById(0);
-//
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a non-existing person " +
-//                "WHEN the function deletePersonByName() is called with its first name and last name " +
-//                "THEN a PersonNotFoundException should be thrown.")
-//        void existPersonByNameNonExistingTest() {
-//            // GIVEN
-//            // a non-existing person
-//            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            // WHEN
-//            //the function deletePersonByName() is called with its first name and last name
-//            // THEN
-//            // a PersonNotFoundException should be thrown
-//            assertThrows(PersonNotFoundException.class, () -> personService.deletePersonByName("firstName", "lastName"));
-//        }
-//    }
-//
-//    @Nested
-//    @DisplayName("existPersonByName() tests:")
-//    class ExistPersonByNameTest {
-//
-//        @Test
-//        @DisplayName("GIVEN an existing person " +
-//                "WHEN the function existPersonByName() is called with its first name and last name " +
-//                "THEN it should return \"true\".")
-//        void existPersonByNameExistingTest() {
-//            // GIVEN
-//            // an existing person
-//            Person person = new Person("FirstNameTest", "LastNameTest");
-//            doReturn(Optional.of(person)).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            // WHEN
-//            //the tested function existPersonByName() is called with its first name and last name
-//            boolean result = personService.existPersonByName("FirstNameTest", "LastNameTest");
-//            // THEN
-//            // it should return "true"
-//            assertThat(result).isTrue();
-//        }
-//
-//        @Test
-//        @DisplayName("GIVEN a non-existing person " +
-//                "WHEN the function existPersonByName() is called with its first name and last name " +
-//                "THEN it should return \"false\".")
-//        void existPersonByNameNonExistingTest() {
-//            // GIVEN
-//            // a non-existing person
-//            doReturn(Optional.empty()).when(personRepository).findByFirstNameAndLastName(any(), any());
-//            // WHEN
-//            //the tested function existPersonByName() is called with its first name and last name
-//            boolean result = personService.existPersonByName("FirstNameTest", "LastNameTest");
-//            // THEN
-//            // it should return "false"
-//            assertThat(result).isFalse();
-//        }
-//    }
+
+    @Nested
+    @DisplayName("updatePerson() tests:")
+    class UpdatePersonTest {
+
+        @Test
+        @DisplayName("GIVEN a person with all updatable information and non-existing address " +
+                "WHEN the function updatePerson() is called " +
+                "THEN the modified person should be returned.")
+        void updatePersonAllInformationNonExistingAddressTest() {
+            // GIVEN
+            //a person with all updatable information and non-existing address
+            Address address = new Address("address test2", "22222", "CITYTEST2");
+            PersonDTO existingPerson = new PersonDTO(
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    "address test", "11111", "CITYTEST",
+                    "1234567890",
+                    "personTest@mail.com");
+            PersonDTO personWithUpdatingInformation = new PersonDTO("FirstNameTest",
+                    "LastNameTest",
+                    "address test2", "22222", "cityTest2",
+                    "876543210",
+                    "personTest@mail.com");
+            Person personToSave = new Person("FIRSTNAMETESTLASTNAMETEST",
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    address,
+                    "876543210",
+                    "personTest@mail.com",
+                    null);
+            doReturn(Optional.of(personToSave)).when(personRepository).findById("FIRSTNAMETESTLASTNAMETEST");
+            doReturn(personToSave).when(personRepository).save(personToSave);
+            doThrow(ObjectNotFoundException.class).when(addressService).getAddress("address test2", "22222", "CITYTEST2");
+            // WHEN
+            //the function updatePerson() is called
+            Person personResult = personService.updatePerson(existingPerson, personWithUpdatingInformation);
+            // THEN
+            //the modified person should be returned.
+            assertThat(personResult).isEqualTo(personToSave);
+            verify(personRepository, Mockito.times(1)).findById("FIRSTNAMETESTLASTNAMETEST");
+            verify(personRepository, Mockito.times(1)).save(personToSave);
+            verify(addressService, Mockito.times(1)).getAddress("address test2", "22222", "CITYTEST2");
+        }
+
+        @Test
+        @DisplayName("GIVEN a person with all updatable information and existing address " +
+                "WHEN the function updatePerson() is called " +
+                "THEN the modified person should be returned.")
+        void updatePersonAllInformationExistingAddressTest() {
+            // GIVEN
+            //a person with all updatable information and existing address
+            Address address = new Address("address test2", "22222", "CITYTEST2");
+            PersonDTO existingPerson = new PersonDTO(
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    "address test", "11111", "CITYTEST",
+                    "1234567890",
+                    "personTest@mail.com");
+            PersonDTO personWithUpdatingInformation = new PersonDTO("FirstNameTest",
+                    "LastNameTest",
+                    "address test2", "22222", "cityTest2",
+                    "876543210",
+                    "personTest@mail.com");
+            Person personToSave = new Person("FIRSTNAMETESTLASTNAMETEST",
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    address,
+                    "876543210",
+                    "personTest@mail.com",
+                    null);
+            doReturn(Optional.of(personToSave)).when(personRepository).findById("FIRSTNAMETESTLASTNAMETEST");
+            doReturn(personToSave).when(personRepository).save(personToSave);
+            doReturn(address).when(addressService).getAddress("address test2", "22222", "CITYTEST2");
+            // WHEN
+            //the function updatePerson() is called
+            Person personResult = personService.updatePerson(existingPerson, personWithUpdatingInformation);
+            // THEN
+            //the modified person should be returned.
+            assertThat(personResult).isEqualTo(personToSave);
+            verify(personRepository, Mockito.times(1)).findById("FIRSTNAMETESTLASTNAMETEST");
+            verify(personRepository, Mockito.times(1)).save(personToSave);
+            verify(addressService, Mockito.times(1)).getAddress("address test2", "22222", "CITYTEST2");
+        }
+
+        @Test
+        @DisplayName("GIVEN a person with only some updatable information" +
+                "WHEN the function updatePerson() is called " +
+                "THEN the modified person should be returned.")
+        void updatePersonSomeUpdatableInformationTest() {
+            // GIVEN
+            //a person with only some updatable information
+            Address address = new Address("address test2", "22222", "CITYTEST2");
+            PersonDTO existingPerson = new PersonDTO(
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    "address test", "11111", "CITYTEST",
+                    "1234567890",
+                    "personTest@mail.com");
+            PersonDTO personWithUpdatingInformation = new PersonDTO(null,
+                    null,
+                    null, null, null,
+                    "876543210",
+                    "personTest@mail.com");
+            Person personToSave = new Person("FIRSTNAMETESTLASTNAMETEST",
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    address,
+                    "876543210",
+                    "personTest@mail.com",
+                    null);
+            doReturn(Optional.of(personToSave)).when(personRepository).findById("FIRSTNAMETESTLASTNAMETEST");
+            doReturn(personToSave).when(personRepository).save(personToSave);
+            // WHEN
+            //the function updatePerson() is called
+            Person personResult = personService.updatePerson(existingPerson, personWithUpdatingInformation);
+            // THEN
+            //the modified person should be returned.
+            assertThat(personResult).isEqualTo(personToSave);
+            verify(personRepository, Mockito.times(1)).findById("FIRSTNAMETESTLASTNAMETEST");
+            verify(personRepository, Mockito.times(1)).save(personToSave);
+            verify(addressService, Mockito.times(0)).getAddress(anyString(), anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("GIVEN a different firstName or lastName between the person to update and the given informations to update " +
+                "WHEN the function updatePerson() is called " +
+                "THEN a NotTheSamePersonException should be thrown with the expected error message")
+        void updatePersonWithDifferentNameTest() {
+            // GIVEN
+            // a different firstName or lastName between the person to update and the given information to update
+            PersonDTO existingPerson = new PersonDTO(
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    "address test", "11111", "CITYTEST",
+                    "1234567890",
+                    "personTest@mail.com");
+            PersonDTO personWithUpdatingInformation = new PersonDTO("differentFirstName",
+                    "differentLastName",
+                    null, null, null,
+                    "876543210",
+                    "personTest@mail.com");
+            // WHEN
+            //the function updatePerson() is called
+            // THEN
+            // NotTheSamePersonException should be thrown with the expected error message
+            Exception exception = assertThrows(NotTheSamePersonException.class, () -> personService.updatePerson(existingPerson, personWithUpdatingInformation));
+            assertEquals("It's not possible to update person first name or person last name,\n" +
+                    "so the person called FIRSTNAMETEST LASTNAMETEST cannot be updated to a person called DIFFERENTFIRSTNAME DIFFERENTLASTNAME.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(0)).findById("FIRSTNAMETESTLASTNAMETEST");
+            verify(personRepository, Mockito.times(0)).save(any());
+            verify(addressService, Mockito.times(0)).getAddress(anyString(), anyString(), anyString());
+        }
 
 
+        @Test
+        @DisplayName("GIVEN a person without any information to update " +
+                "WHEN the function updatePerson() is called " +
+                "THEN a NothingToUpdateException should be thrown")
+        void updatePersonWithoutUpdatableInformationTest() {
+            // GIVEN
+            //  a person without any information to update
+
+            PersonDTO existingPerson = new PersonDTO(
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    "address test", "11111", "CITYTEST",
+                    "1234567890",
+                    "personTest@mail.com");
+            PersonDTO personWithUpdatingInformation = new PersonDTO("firstNameTest",
+                    "LastNameTest",
+                    null, null, null,
+                    null,
+                    null);
+            Person personToSave = new Person("FIRSTNAMETESTLASTNAMETEST",
+                    "FIRSTNAMETEST",
+                    "LASTNAMETEST",
+                    null,
+                    "876543210",
+                    "personTest@mail.com",
+                    null);
+            doReturn(Optional.of(personToSave)).when(personRepository).findById("FIRSTNAMETESTLASTNAMETEST");
+            doReturn(personToSave).when(personRepository).save(personToSave);
+            // WHEN
+            //the function updatePerson() is called
+            // THEN
+            //a NothingToUpdateException should be thrown
+            Exception exception = assertThrows(NothingToUpdateException.class, () -> personService.updatePerson(existingPerson, personWithUpdatingInformation));
+            assertEquals("The person FIRSTNAMETEST LASTNAMETEST wasn't updated, there was no element to update.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findById("FIRSTNAMETESTLASTNAMETEST");
+            verify(personRepository, Mockito.times(0)).save(any());
+            verify(addressService, Mockito.times(0)).getAddress(anyString(), anyString(), anyString());
+        }
+    }
+
+        @Nested
+        @DisplayName("deletePersonById() tests:")
+        class DeletePersonByIdTest {
+
+            @Test
+            @DisplayName("GIVEN an existing person " +
+                    "WHEN the function deletePersonById() is called " +
+                    "THEN the repository methods findById and deleteById are both invocated one time with right arguments.")
+            void deletePersonByIdExistingTest() {
+                // GIVEN
+                // an existing person
+                Person person = new Person("idTest", "FirstNameTest", "LastNameTest", null, "phoneNumberTest", "mailTest", null);
+                doReturn(Optional.of(person)).when(personRepository).findById("idTest");
+                doNothing().when(personRepository).deleteById("idTest");
+                // WHEN
+                //the function deletePersonById() is called
+                personService.deletePersonById("idTest");
+                // THEN
+                // the repository methods findById and deleteById are both invocated one time with right arguments
+                verify(personRepository, Mockito.times(1)).findById("idTest");
+                verify(personRepository, Mockito.times(1)).deleteById("idTest");
+
+            }
+
+            @Test
+            @DisplayName("GIVEN a non-existing person " +
+                    "WHEN the function deletePersonById() is called " +
+                    "THEN a PersonNotFoundException should be thrown with the expected error message.")
+            void deletePersonByIdNonExistingTest() {
+                // GIVEN
+                // a non-existing person
+                doReturn(Optional.empty()).when(personRepository).findById(any());
+                // WHEN
+                //the function deletePersonById() is called
+                // THEN
+                // a PersonNotFoundException should be thrown with the expected error message
+                Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.deletePersonById("idTest"));
+                assertEquals("The person with id idTest was not found, so it cannot have been deleted.\n", exception.getMessage());
+                verify(personRepository, Mockito.times(1)).findById("idTest");
+                verify(personRepository, Mockito.times(0)).deleteById(any());
+
+            }
+        }
+
+    @Nested
+    @DisplayName("getPersonsByName() tests:")
+    class GetPersonsByNameTest {
+
+        @Test
+        @DisplayName("GIVEN existing person " +
+                "WHEN the function getPersonsByName() is called " +
+                "THEN a list containing this person should be returned.")
+        void getPersonsByNameExistingTest() {
+            // GIVEN
+            // an existing person
+            Person person = new Person("idTest", "FirstNameTest", "LastNameTest", null, "phoneNumberTest", "mailTest", null);
+            List<Person> personList =List.of(person);
+            doReturn(personList).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            // WHEN
+            //the function getPersonsByName() is called
+            List<Person> resultList = personService.getPersonsByName("FirstNameTest","LastNameTest");
+            // THEN
+            // a list containing this person should be returned.
+            assertThat(resultList).isEqualTo(personList);
+            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+        }
+
+        @Test
+        @DisplayName("GIVEN a non-existing person " +
+                "WHEN the function getPersonsByName() is called " +
+                "THEN a PersonNotFoundException should be thrown with the expected error message.")
+        void getPersonsByNameNonExistingTest() {
+            // GIVEN
+            // a non-existing person
+            doReturn(new ArrayList<>()).when(personRepository).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+            // WHEN
+            //the function getPersonsByName() is called
+            // THEN
+            // a PersonNotFoundException should be thrown with the expected error message
+            Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.getPersonsByName("FirstNameTest","LastNameTest"));
+            assertEquals("The person FIRSTNAMETEST LASTNAMETEST was not found.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findByFirstNameAndLastName("FIRSTNAMETEST","LASTNAMETEST");
+        }
+    }
 }

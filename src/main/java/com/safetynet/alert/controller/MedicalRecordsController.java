@@ -71,8 +71,8 @@ public class MedicalRecordsController {
         log.debug("The function addMedicalRecord in MedicalRecordsController is beginning.");
         //adding medical records
         MedicalRecords medicalRecordSaved = medicalRecordsService.addNewMedicalRecords(medicalRecords);
-        String firstName = medicalRecordSaved.getPerson().getFirstName();
-        String lastName = medicalRecordSaved.getPerson().getLastName();
+        String firstName = medicalRecordSaved.getPerson().getFirstName().toUpperCase();
+        String lastName = medicalRecordSaved.getPerson().getLastName().toUpperCase();
         String result = "Medical records about " + firstName + " " + lastName + " have been registered.\n";
         //building a new location and putting it in the response's headers to transmit the created medical records' uri to user
         URI location = ServletUriComponentsBuilder
@@ -82,6 +82,7 @@ public class MedicalRecordsController {
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
+        result = result + location;
         log.debug("The function addMedicalRecord in MedicalRecordsController is ending without any exception.\n");
         return new ResponseEntity<>(result, httpHeaders, HttpStatus.CREATED);
     }
@@ -124,8 +125,8 @@ public class MedicalRecordsController {
     @Transactional
     public ResponseEntity<String> deleteMedicalRecords(@PathVariable Map<String, String> pathVariables) {
         log.debug("The function deleteMedicalRecords in MedicalRecordsController is beginning.");
-        String firstName = pathVariables.get("firstName").toUpperCase();
-        String lastName = pathVariables.get("lastName").toUpperCase();
+        String firstName = pathVariables.get("firstName");
+        String lastName = pathVariables.get("lastName");
         String result = medicalRecordsService.deleteMedicalRecords(firstName, lastName);
         log.debug("The function deleteMedicalRecords in MedicalRecordsController is ending without any exception.\n");
         return new ResponseEntity<>(result, HttpStatus.OK);

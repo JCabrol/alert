@@ -2,8 +2,6 @@ package com.safetynet.alert.service;
 
 import com.safetynet.alert.model.*;
 import com.safetynet.alert.model.DTO.*;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,15 +12,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
-
 @Service
 @Slf4j
-
-public class UrlsServiceImpl implements UrlsService{
-    @Autowired
-    private MedicalRecordsService medicalRecordsService;
+public class UrlsServiceImpl implements UrlsService {
 
     @Autowired
     private PersonService personService;
@@ -112,7 +104,7 @@ public class UrlsServiceImpl implements UrlsService{
         log.debug("The function getPhoneNumbersByFirestation in UrlsService is beginning.");
         List<Address> attachedAddresses = firestationService.getFirestationById(stationId).getAttachedAddresses();
         List<Person> allPerson = attachedAddresses
-        .stream()
+                .stream()
                 .map(Address::getPersonList)
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
@@ -132,25 +124,25 @@ public class UrlsServiceImpl implements UrlsService{
         Address addressFound = addressService.getAddress(address);
         List<Person> personsByAddress = addressFound.getPersonList();
         List<PersonInfoDTO> personInfoDTOList = personsByAddress.stream()
-                .map(person->{
-            PersonInfoDTO personInfoDTO = new PersonInfoDTO();
-            personInfoDTO.setFirstName(person.getFirstName());
-            personInfoDTO.setLastName(person.getLastName());
-            personInfoDTO.setPhoneNumber(person.getPhoneNumber());
-            personInfoDTO.setAge(LocalDate.now().compareTo(person.getMedicalRecords().getBirthdate()));
-            personInfoDTO.setMedications(person.getMedicalRecords().getMedications()
-                    .stream()
-                    .map(Medication::getMedicationName)
-                    .collect(Collectors.toList()));
-            personInfoDTO.setAllergies(person.getMedicalRecords().getAllergies()
-                    .stream()
-                    .map(Allergy::getAllergyName)
-                    .collect(Collectors.toList()));
-            return personInfoDTO;
-        })
+                .map(person -> {
+                    PersonInfoDTO personInfoDTO = new PersonInfoDTO();
+                    personInfoDTO.setFirstName(person.getFirstName());
+                    personInfoDTO.setLastName(person.getLastName());
+                    personInfoDTO.setPhoneNumber(person.getPhoneNumber());
+                    personInfoDTO.setAge(LocalDate.now().compareTo(person.getMedicalRecords().getBirthdate()));
+                    personInfoDTO.setMedications(person.getMedicalRecords().getMedications()
+                            .stream()
+                            .map(Medication::getMedicationName)
+                            .collect(Collectors.toList()));
+                    personInfoDTO.setAllergies(person.getMedicalRecords().getAllergies()
+                            .stream()
+                            .map(Allergy::getAllergyName)
+                            .collect(Collectors.toList()));
+                    return personInfoDTO;
+                })
                 .collect(Collectors.toList());
         int stationId = addressFound.getFirestation().getStationId();
-        FireInfoDTO result = new FireInfoDTO(address,stationId,personInfoDTOList);
+        FireInfoDTO result = new FireInfoDTO(address, stationId, personInfoDTOList);
         log.debug("The function getPersonsByAddress in UrlsService is ending without any exception.");
         return result;
     }
@@ -160,7 +152,7 @@ public class UrlsServiceImpl implements UrlsService{
         log.debug("The function getHouseholdsByStation in UrlsService is beginning.");
         List<Firestation> firestationList = stationNumbers
                 .stream()
-                .map(number->firestationService.getFirestationById(number))
+                .map(number -> firestationService.getFirestationById(number))
                 .collect(Collectors.toList());
         List<Address> addressesList = firestationList
                 .stream()
@@ -168,23 +160,28 @@ public class UrlsServiceImpl implements UrlsService{
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        List<FireInfoDTO> result = addressesList.stream().map(address->getPersonsByAddress(address.getStreet())).collect(Collectors.toList());
+        List<FireInfoDTO> result = addressesList.stream().map(address -> getPersonsByAddress(address.getStreet())).collect(Collectors.toList());
         log.debug("The function getHouseholdsByStation in UrlsService is ending without any exception.");
         return result;
     }
 
     @Override
-    public PersonInfo2DTO getPersonsByName(String firstName, String lastName) {
+    public List<PersonInfo2DTO> getPersonsByName(String firstName, String lastName) {
         log.debug("The function getPersonsByName in UrlsService is beginning.");
-        Person personFound = personService.getPersonByName(firstName, lastName);
-        PersonInfo2DTO result = new PersonInfo2DTO();
-        result.setFirstName(personFound.getFirstName());
-        result.setLastName(personFound.getLastName());
-        result.setAddress(personFound.getAddress().getStreet() + " - " + personFound.getAddress().getZip() + " " + personFound.getAddress().getCity());
-        result.setAllergies(personFound.getMedicalRecords().getAllergies().stream().map(Allergy::getAllergyName).collect(Collectors.toList()));
-        result.setMedications(personFound.getMedicalRecords().getMedications().stream().map(Medication::getMedicationName).collect(Collectors.toList()));
-        result.setMail(personFound.getMail());
-        result.setPhoneNumber(personFound.getPhoneNumber());
+        List<Person> personFound = personService.getPersonsByName(firstName, lastName);
+        List<PersonInfo2DTO> result = personFound
+                .stream()
+                .map(person -> {
+            PersonInfo2DTO personInfo2DTO = new PersonInfo2DTO();
+            personInfo2DTO.setFirstName(person.getFirstName());
+            personInfo2DTO.setLastName(person.getLastName());
+            personInfo2DTO.setAddress(person.getAddress().getStreet() + " - " + person.getAddress().getZip() + " " + person.getAddress().getCity());
+            personInfo2DTO.setAllergies(person.getMedicalRecords().getAllergies().stream().map(Allergy::getAllergyName).collect(Collectors.toList()));
+            personInfo2DTO.setMedications(person.getMedicalRecords().getMedications().stream().map(Medication::getMedicationName).collect(Collectors.toList()));
+            personInfo2DTO.setMail(person.getMail());
+            personInfo2DTO.setPhoneNumber(person.getPhoneNumber());
+            return personInfo2DTO;})
+                .collect(Collectors.toList());
         log.debug("The function getPersonsByName in UrlsService is ending without any exception.");
         return result;
     }
@@ -192,7 +189,7 @@ public class UrlsServiceImpl implements UrlsService{
     @Override
     public List<String> getMailsByCity(String city) {
         log.debug("The function getMailsByCity in UrlsService is beginning.");
-        List<String> result = personService.getPersons().stream().filter(person->person.getAddress().getCity().equalsIgnoreCase(city)).map(Person::getMail).collect(Collectors.toList());
+        List<String> result = personService.getPersons().stream().filter(person -> person.getAddress().getCity().equalsIgnoreCase(city)).map(Person::getMail).collect(Collectors.toList());
         log.debug("The function getMailsByCity in UrlsService is ending without any exception.");
         return result;
     }

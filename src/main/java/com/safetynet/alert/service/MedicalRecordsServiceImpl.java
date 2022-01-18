@@ -7,8 +7,6 @@ import com.safetynet.alert.model.MedicalRecords;
 import com.safetynet.alert.model.Medication;
 import com.safetynet.alert.model.Person;
 import com.safetynet.alert.repository.MedicalRecordsRepository;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,8 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
 
 @Service
 @Slf4j
@@ -37,10 +33,10 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
      * Get all the medical records presents in data
      *
      * @return a list containing all the medical records
-     * @throws EmptyMedicalRecordsException - when there are no medical records found
+     * @throws EmptyObjectException - when there are no medical records found
      */
     @Override
-    public List<MedicalRecordDTO> getMedicalRecords() throws EmptyMedicalRecordsException {
+    public List<MedicalRecordDTO> getMedicalRecords() throws EmptyObjectException {
         log.debug("The function getMedicalRecords in MedicalRecordsService is beginning.");
         List<MedicalRecords> allMedicalRecords = (List<MedicalRecords>) medicalRecordsRepository.findAll();
         if (!allMedicalRecords.isEmpty()) {
@@ -49,7 +45,7 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
             return allMedicalRecordsDTO;
         } else {
             log.debug("The function getMedicalRecords in MedicalRecordsService is ending without founding any medical record.");
-            throw new EmptyMedicalRecordsException("There are no medical records registered.\n");
+            throw new EmptyObjectException("There are no medical records registered.\n");
         }
     }
 
@@ -81,15 +77,15 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
      * @return MedicalRecords object concerning the researched person
      */
     @Override
-    public MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws MedicalRecordsNotFoundException {
+    public MedicalRecords getMedicalRecordsByName(String firstName, String lastName) throws ObjectNotFoundException {
         log.debug("The function getMedicalRecordsByName in MedicalRecordsService is beginning.");
-        Person person = personService.getPersonByName(firstName, lastName);
+        Person person = personService.getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
         if (person.getMedicalRecords() != null) {
             MedicalRecords medicalRecords = person.getMedicalRecords();
             log.debug("The function getMedicalRecordsByName in MedicalRecordsService is ending without any exception.");
             return medicalRecords;
         } else {
-            throw new MedicalRecordsNotFoundException("There is no medical records found for the person " + firstName + " " + lastName + ".\n");
+            throw new ObjectNotFoundException("There is no medical records found for the person " + firstName + " " + lastName + ".\n");
         }
     }
 
@@ -106,7 +102,7 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
             Person person;
             //verifying the researched person is existing
             try {
-                person = personService.getPersonByName(firstName, lastName);
+                person = personService.getPersonById(firstName.toUpperCase() + lastName.toUpperCase());
                 //if the person already have medical records, they are selected to be replaced
                 if (person.getMedicalRecords() != null) {
                     medicalRecordsToSave = person.getMedicalRecords();
@@ -116,7 +112,7 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
                     medicalRecordsToSave.addPerson(person);
                 }
                 //if the person doesn't exist, it's created and medical records are created and attached to this new person
-            } catch (PersonNotFoundException ex) {
+            } catch (ObjectNotFoundException ex) {
                 person = new Person(firstName.toUpperCase(), lastName.toUpperCase());
                 medicalRecordsToSave = new MedicalRecords();
                 medicalRecordsToSave.addPerson(person);
@@ -168,15 +164,15 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
      * @return a String containing the information which have been updated
      * @throws NotTheSamePersonException - when the information to update contains a different first name or a different last name
      * @throws NothingToUpdateException  - when there are no information to update in the medicalRecordDTO
-     * @throws PersonNotFoundException   - when no person is found with the given firstName and lastName
+     * @throws ObjectNotFoundException   - when no person is found with the given firstName and lastName
      */
     @Override
-    public String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, PersonNotFoundException {
+    public String updateMedicalRecord(String firstName, String lastName, MedicalRecordDTO medicalRecordDTO) throws NotTheSamePersonException, NothingToUpdateException, ObjectNotFoundException {
         log.debug("The function updateMedicalRecords in MedicalRecordsService is beginning.");
         //getting the person concerned using firstName and lastName
         String upperCaseFirstName = firstName.toUpperCase();
         String upperCaseLastName = lastName.toUpperCase();
-        Person personToUpdateMedicals = personService.getPersonByName(upperCaseFirstName, upperCaseLastName);
+        Person personToUpdateMedicals = personService.getPersonById(upperCaseFirstName + upperCaseLastName);
         //if there's a different firstName or lastName in the MedicalRecordDTO information an exception is thrown
         String firstNameNew = medicalRecordDTO.getFirstName();
         String lastNameNew = medicalRecordDTO.getLastName();
@@ -192,7 +188,6 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
         }
         //using a boolean and a String to remember if there are changes and which ones
         boolean updated = false;
-        String itemsChanged = "";
         //if there's a birthdate in the MedicalRecordDTO information, it's set to the person's medical records
         String birthdate = medicalRecordDTO.getBirthdate();
         LocalDate birthdateFormatted;
@@ -215,7 +210,6 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
             }
             medicalRecords.setBirthdate(birthdateFormatted);
             updated = true;
-            itemsChanged = itemsChanged + "- the birthdate : " + birthdate + "\n";
         }
         //if there are medications in the MedicalRecordDTO information, older medications are cleared and new ones are set to the person's medical records
         List<String> medications = medicalRecordDTO.getMedications();
@@ -225,7 +219,6 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
                 medicalRecords.addMedication(new Medication(medication));
             }
             updated = true;
-            itemsChanged = itemsChanged + "- the medications : " + medications + "\n";
         }
         //if there are allergies in the MedicalRecordDTO information, older allergies are cleared and new ones set to the person's medical records
         List<String> allergies = medicalRecordDTO.getAllergies();
@@ -235,12 +228,11 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
                 medicalRecords.addAllergy(new Allergy(allergy));
             }
             updated = true;
-            itemsChanged = itemsChanged + "- the allergies : " + allergies + "\n";
         }
         //if there are changes, they are registered and a String containing changed information is returned
         if (updated) {
             medicalRecordsRepository.save(medicalRecords);
-            String updatingMessage = "The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " have been updated with following items :\n" + itemsChanged;
+            String updatingMessage = "The medical records about the person " + upperCaseFirstName + " " + upperCaseLastName + " have been updated.\n";
             log.info(updatingMessage);
             log.debug("The function updateMedicalRecords in MedicalRecordsService is ending with updating medical records.");
             return updatingMessage;
@@ -258,15 +250,15 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
      * @param lastName  -a String which is the last name of the person whose medical records have to be deleted
      * @return a String which indicates the person whose medical records have been deleted
      * @throws NothingToDeleteException - when the medical records to delete don't exist anyway
-     * @throws PersonNotFoundException  - when no person is found with the given firstName and lastName
+     * @throws ObjectNotFoundException  - when no person is found with the given firstName and lastName
      */
     @Override
-    public String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, PersonNotFoundException {
+    public String deleteMedicalRecords(String firstName, String lastName) throws NothingToDeleteException, ObjectNotFoundException {
         log.debug("The function deleteMedicalRecords in MedicalRecordsService is beginning.");
         //getting the person concerned using firstName and lastName
         String upperCaseFirstName = firstName.toUpperCase();
         String upperCaseLastName = lastName.toUpperCase();
-        Person personDeleteMedicalRecords = personService.getPersonByName(upperCaseFirstName, upperCaseLastName);
+        Person personDeleteMedicalRecords = personService.getPersonById(upperCaseFirstName + upperCaseLastName);
         //getting person's medical records
         MedicalRecords medicalRecordsToDelete = personDeleteMedicalRecords.getMedicalRecords();
         //removing person's medical records if they're existing and returning confirmation message

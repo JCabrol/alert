@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Profile("!test")
@@ -110,8 +111,8 @@ public class DataInit implements ApplicationRunner {
                     String firstName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("firstName").asText();
                     String lastName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("lastName").asText();
                     Person personToUpdate;
-                    Optional<Person> person = personRepository.findByFirstNameAndLastName(firstName.toUpperCase(), lastName.toUpperCase());
-                    personToUpdate = person.orElseGet(() -> new Person(firstName, lastName));
+                    List<Person> person = personRepository.findByFirstNameAndLastName(firstName.toUpperCase(), lastName.toUpperCase());
+                    if(person.isEmpty()){personToUpdate = new Person(firstName, lastName);}else{personToUpdate = person.get(0);}
                     medicalRecords.addPerson(personToUpdate);
                     String birthdate = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("birthdate").asText();
                     int birthdateMonth = Integer.parseInt(birthdate.substring(0, 2));
