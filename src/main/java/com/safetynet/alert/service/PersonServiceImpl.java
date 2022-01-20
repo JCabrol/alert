@@ -68,7 +68,7 @@ public class PersonServiceImpl implements PersonService {
      */
     public Person getPersonById(String id) throws ObjectNotFoundException {
         log.debug("The function getPersonById in PersonService is beginning.");
-        Optional<Person> personResearched = personRepository.findById(id);
+        Optional<Person> personResearched = personRepository.findById(id.toUpperCase());
         if (personResearched.isPresent()) {
             Person personFound = personResearched.get();
             log.debug("The function getPersonById in PersonService is ending, a person was found");
@@ -88,7 +88,7 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public PersonDTO getPersonDTOById(String id) {
         log.debug("The function getPersonDTOById in PersonService is beginning.");
-        Person personFound = getPersonById(id);
+        Person personFound = getPersonById(id.toUpperCase());
         PersonDTO personDTOFound = transformPersonToPersonDTO(personFound);
         log.debug("The function getPersonDTOById in PersonService is ending, a person was found");
         return personDTOFound;
@@ -142,12 +142,14 @@ public class PersonServiceImpl implements PersonService {
         if (exists) {
             List<Person> samePerson = getPersonsByName(upperCaseFirstName, upperCaseLastName)
                     .stream()
+                    .filter(p -> p.getAddress() != null)
                     .filter(p -> p.getAddress().getStreet().equalsIgnoreCase(person.getAddress()))
                     .collect(Collectors.toList());
             if (!samePerson.isEmpty()) {
                 itsTheSame = true;
             }
         }
+
         if (!itsTheSame) {
             person.setFirstName(upperCaseFirstName);
             person.setLastName(upperCaseLastName);
@@ -217,11 +219,16 @@ public class PersonServiceImpl implements PersonService {
         PersonDTO personDTO = new PersonDTO(
                 person.getFirstName(),
                 person.getLastName(),
-                person.getAddress().getStreet(),
-                person.getAddress().getZip(),
-                person.getAddress().getCity(),
+                null,
+                null,
+                null,
                 person.getPhoneNumber(),
                 person.getMail());
+        if (person.getAddress() != null) {
+            personDTO.setAddress(person.getAddress().getStreet());
+            personDTO.setZip(person.getAddress().getZip());
+            personDTO.setCity(person.getAddress().getCity());
+        }
         log.debug("The function transformPersonToPersonDTO in PersonService is ending.");
         return personDTO;
     }
@@ -310,12 +317,16 @@ public class PersonServiceImpl implements PersonService {
     public void deletePersonById(String id) throws ObjectNotFoundException {
         log.debug("The function deletePersonByName in PersonService is beginning.");
         try {
-            getPersonById(id);
-            personRepository.deleteById(id);
+            Person person = getPersonById(id);
+            if(person.getAddress()!=null)
+            { person.getAddress().removePerson(person);}
+            personRepository.delete(person);
+
+            //personRepository.deleteById(upperCaseId);
             log.info("The person with id " + id + " have been deleted. \n");
             log.debug("The function deletePersonByName in PersonService is ending, a person have been deleted.");
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException("The person with id " + id + " was not found, so it cannot have been deleted.\n");
+            throw new ObjectNotFoundException("The person with id " + id.toUpperCase() + " was not found, so it cannot have been deleted.\n");
         }
     }
 }

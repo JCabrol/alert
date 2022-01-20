@@ -166,14 +166,14 @@ public class PersonServiceTest {
             // GIVEN
             //an existing person
             Person person  = new Person("idTest", "FIRSTNAME", "LASTNAME", new Address(" address test", "1234 test", "CITYTEST" ), "1234567890" , "person@mail.com", new MedicalRecords());
-            doReturn(Optional.of(person)).when(personRepository).findById("idTest");
+            doReturn(Optional.of(person)).when(personRepository).findById("IDTEST");
             // WHEN
             //the function getPersonById() is called
             Person returnedPerson = personService.getPersonById("idTest");
             // THEN
             //the person should be found
             assertThat(returnedPerson).isEqualTo(person);
-            verify(personRepository, Mockito.times(1)).findById("idTest");
+            verify(personRepository, Mockito.times(1)).findById("IDTEST");
         }
 
         @Test
@@ -183,14 +183,14 @@ public class PersonServiceTest {
         void getPersonByIdNotExistingTest() {
             // GIVEN
             //a non-existing person
-            doReturn(Optional.empty()).when(personRepository).findById("idTest");
+            doReturn(Optional.empty()).when(personRepository).findById("IDTEST");
             //WHEN
             //the function getPersonById() is called
             //THEN
             //an ObjectNotFoundException should be thrown with the expected error message
             Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.getPersonById("idTest"));
             assertEquals("The person with id idTest was not found.\n", exception.getMessage());
-            verify(personRepository, Mockito.times(1)).findById("idTest");
+            verify(personRepository, Mockito.times(1)).findById("IDTEST");
         }
     }
 
@@ -206,7 +206,7 @@ public class PersonServiceTest {
             // GIVEN
             //an existing person
             Person person  = new Person("idTest", "FIRSTNAME", "LASTNAME", new Address(" address test", "1234 test", "CITYTEST" ), "1234567890" , "person@mail.com", new MedicalRecords());
-            doReturn(Optional.of(person)).when(personRepository).findById("idTest");
+            doReturn(Optional.of(person)).when(personRepository).findById("IDTEST");
             // WHEN
             //the function getPersonById() is called
             PersonDTO returnedPerson = personService.getPersonDTOById("idTest");
@@ -219,7 +219,7 @@ public class PersonServiceTest {
             assertThat(returnedPerson.getAddress()).isEqualTo(person.getAddress().getStreet());
             assertThat(returnedPerson.getZip()).isEqualTo(person.getAddress().getZip());
             assertThat(returnedPerson.getCity()).isEqualTo(person.getAddress().getCity());
-            verify(personRepository, Mockito.times(1)).findById("idTest");
+            verify(personRepository, Mockito.times(1)).findById("IDTEST");
         }
 
         @Test
@@ -229,14 +229,14 @@ public class PersonServiceTest {
         void getPersonDTOByIdNotExistingTest() {
             // GIVEN
             //a non-existing person
-            doReturn(Optional.empty()).when(personRepository).findById("idTest");
+            doReturn(Optional.empty()).when(personRepository).findById("IDTEST");
             //WHEN
             //the function getPersonById() is called
             //THEN
             //an ObjectNotFoundException should be thrown with the expected error message
             Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.getPersonDTOById("idTest"));
-            assertEquals("The person with id idTest was not found.\n", exception.getMessage());
-            verify(personRepository, Mockito.times(1)).findById("idTest");
+            assertEquals("The person with id IDTEST was not found.\n", exception.getMessage());
+            verify(personRepository, Mockito.times(1)).findById("IDTEST");
         }
     }
 
@@ -657,18 +657,39 @@ public class PersonServiceTest {
             void deletePersonByIdExistingTest() {
                 // GIVEN
                 // an existing person
-                Person person = new Person("idTest", "FirstNameTest", "LastNameTest", null, "phoneNumberTest", "mailTest", null);
-                doReturn(Optional.of(person)).when(personRepository).findById("idTest");
-                doNothing().when(personRepository).deleteById("idTest");
+                Person person = new Person("IDTEST", "FirstNameTest", "LastNameTest", null, "phoneNumberTest", "mailTest", null);
+                doReturn(Optional.of(person)).when(personRepository).findById("IDTEST");
+                doNothing().when(personRepository).delete(person);
                 // WHEN
                 //the function deletePersonById() is called
                 personService.deletePersonById("idTest");
                 // THEN
                 // the repository methods findById and deleteById are both invocated one time with right arguments
-                verify(personRepository, Mockito.times(1)).findById("idTest");
-                verify(personRepository, Mockito.times(1)).deleteById("idTest");
-
+                verify(personRepository, Mockito.times(1)).findById("IDTEST");
+                verify(personRepository, Mockito.times(1)).delete(person);
             }
+
+            @Test
+            @DisplayName("GIVEN an existing person " +
+                    "WHEN the function deletePersonById() is called " +
+                    "THEN the repository methods findById and deleteById are both invocated one time with right arguments.")
+            void deletePersonByIdWithAddressExistingTest() {
+                // GIVEN
+                // an existing person
+                Address address= new Address();
+                Person person = new Person("IDTEST", "FirstNameTest", "LastNameTest", null, "phoneNumberTest", "mailTest", null);
+                address.addPerson(person);
+                doReturn(Optional.of(person)).when(personRepository).findById("IDTEST");
+                doNothing().when(personRepository).delete(person);
+                // WHEN
+                //the function deletePersonById() is called
+                personService.deletePersonById("idTest");
+                // THEN
+                // the repository methods findById and deleteById are both invocated one time with right arguments
+                verify(personRepository, Mockito.times(1)).findById("IDTEST");
+                verify(personRepository, Mockito.times(1)).delete(person);
+            }
+
 
             @Test
             @DisplayName("GIVEN a non-existing person " +
@@ -683,9 +704,9 @@ public class PersonServiceTest {
                 // THEN
                 // a PersonNotFoundException should be thrown with the expected error message
                 Exception exception = assertThrows(ObjectNotFoundException.class, () -> personService.deletePersonById("idTest"));
-                assertEquals("The person with id idTest was not found, so it cannot have been deleted.\n", exception.getMessage());
-                verify(personRepository, Mockito.times(1)).findById("idTest");
-                verify(personRepository, Mockito.times(0)).deleteById(any());
+                assertEquals("The person with id IDTEST was not found, so it cannot have been deleted.\n", exception.getMessage());
+                verify(personRepository, Mockito.times(1)).findById("IDTEST");
+                verify(personRepository, Mockito.times(0)).delete(any());
 
             }
         }

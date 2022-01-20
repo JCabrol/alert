@@ -462,7 +462,7 @@ public class PersonControllerTest {
             mockMvc.perform(delete("/person/{id}", "idTest"))
                     // THEN
                     .andExpect(status().isOk())
-                    .andExpect(content().string("The person with id idTest has been deleted."));
+                    .andExpect(content().string("The person with id IDTEST has been deleted."));
             verify(personService, Mockito.times(1)).deletePersonById("idTest");
         }
 

@@ -40,6 +40,7 @@ public class DataInit implements ApplicationRunner {
         this.addressRepository = addressRepository;
     }
 
+
     @Transactional
     @Override
     public void run(ApplicationArguments args) {
@@ -61,8 +62,10 @@ public class DataInit implements ApplicationRunner {
                 log.debug("Beginning to get persons from json file.\n");
                 for (int numberOfPersons = 0; numberOfPersons < jsonObject.path("persons").size(); numberOfPersons++) {
                     Person person = new Person();
-                    person.setFirstName(jsonObject.path("persons").path(numberOfPersons).path("firstName").asText().toUpperCase());
-                    person.setLastName(jsonObject.path("persons").path(numberOfPersons).path("lastName").asText().toUpperCase());
+                    String firstName = jsonObject.path("persons").path(numberOfPersons).path("firstName").asText().toUpperCase();
+                    person.setFirstName(firstName);
+                    String lastName = jsonObject.path("persons").path(numberOfPersons).path("lastName").asText().toUpperCase();
+                    person.setLastName(lastName);
                     person.setPhoneNumber(jsonObject.path("persons").path(numberOfPersons).path("phone").asText().replaceAll("-", ""));
                     person.setMail(jsonObject.path("persons").path(numberOfPersons).path("email").asText());
                     String street = jsonObject.path("persons").path(numberOfPersons).path("address").asText();
@@ -112,7 +115,11 @@ public class DataInit implements ApplicationRunner {
                     String lastName = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("lastName").asText();
                     Person personToUpdate;
                     List<Person> person = personRepository.findByFirstNameAndLastName(firstName.toUpperCase(), lastName.toUpperCase());
-                    if(person.isEmpty()){personToUpdate = new Person(firstName, lastName);}else{personToUpdate = person.get(0);}
+                    if (person.isEmpty()) {
+                        personToUpdate = new Person(firstName, lastName);
+                    } else {
+                        personToUpdate = person.get(0);
+                    }
                     medicalRecords.addPerson(personToUpdate);
                     String birthdate = jsonObject.path("medicalrecords").path(numberOfMedicalRecords).path("birthdate").asText();
                     int birthdateMonth = Integer.parseInt(birthdate.substring(0, 2));

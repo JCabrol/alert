@@ -57,4 +57,9 @@ public class Address {
         person.setAddress(this);
     }
 
+    public void removePerson(Person person) {
+        this.personList.remove(person);
+        person.setAddress(null);
+    }
+
 }

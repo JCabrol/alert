@@ -47,4 +47,5 @@ public class Person {
             fetch = FetchType.LAZY)
     @JoinColumn(name = "MEDICAL_ID")
     private MedicalRecords medicalRecords;
+
 }

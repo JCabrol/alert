@@ -7,14 +7,13 @@ import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.Configurable;
 import org.hibernate.id.IdentifierGenerator;
+import org.hibernate.query.Query;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 public class MyGenerator implements IdentifierGenerator, Configurable {
 
@@ -23,39 +22,26 @@ public class MyGenerator implements IdentifierGenerator, Configurable {
     public Serializable generate(
             SharedSessionContractImplementor session, Object object)
             throws HibernateException {
-
-//        String createdId = ((Person) object).getFirstName().toUpperCase() + ((Person) object).getLastName().toUpperCase();
-//
-//        List<Person> personList = session
-//                .createQuery("from Person", Person.class)
-//                .getResultList();
-//
-//        List<String> idList = personList.stream().map(Person::getId).collect(Collectors.toList());
-//
-//        if (idList.contains(createdId)) {
-//            int idComplement = 1;
-//            String createdIdWithComplement = createdId + idComplement;
-//            while (idComplement != 0) {
-//                if (idList.contains(createdIdWithComplement)) {
-//                    createdIdWithComplement = createdId + idComplement;
-//                    idComplement++;
-//                } else {
-//                    idComplement = 0;
-//                }
+            String firstName = ((Person) object).getFirstName().toUpperCase();
+            String lastName = ((Person) object).getLastName().toUpperCase();
+            String createdId = firstName + lastName;
+//            Query query = session.createQuery("FROM Person");
+//            List<Person> allPersons = query.getResultList();
+//            long numberOfHomonyms = allPersons
+//                    .stream()
+//                    .filter(person -> person.getFirstName().equals(firstName))
+//                    .filter(person -> person.getLastName().equals(lastName))
+//                    .count();
+//            if (numberOfHomonyms != 0) {
+//                createdId = createdId + (numberOfHomonyms + 1);
 //            }
-//            return createdIdWithComplement;
-//
-//        } else {
-//            return createdId;
-//        }
-        return ((Person) object).getFirstName().toUpperCase() + ((Person) object).getLastName().toUpperCase();
+            return createdId;
     }
 
+        @Override
+        public void configure (Type type, Properties properties,
+                ServiceRegistry serviceRegistry) throws MappingException {
 
-    @Override
-    public void configure(Type type, Properties properties,
-                          ServiceRegistry serviceRegistry) throws MappingException {
-
+        }
     }
-}
 

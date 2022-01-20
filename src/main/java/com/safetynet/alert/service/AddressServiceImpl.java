@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,13 +32,14 @@ public class AddressServiceImpl implements AddressService {
     public Address getAddress(String street, String zip, String city) throws ObjectNotFoundException {
         log.debug("The function getAddress in AddressService is beginning.");
         List<Address> addressesResearched = (List<Address>) addressRepository.findAll();
-        List<Address> addressesFound =
-                addressesResearched
+        List<Address> addressesFound = new ArrayList<>();
+        if(street!=null){
+        addressesFound = addressesResearched
                         .stream()
                         .filter(a -> (a.getStreet()).replaceAll("\\s", "").equalsIgnoreCase(street.replaceAll("\\s", "")))
                         .filter(a -> a.getZip().equals(zip))
                         .filter(a -> a.getCity().equalsIgnoreCase(city))
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toList());}
 
         if (addressesFound.isEmpty()) {
             log.debug("The function getAddress in AddressService is ending, no address was found.");

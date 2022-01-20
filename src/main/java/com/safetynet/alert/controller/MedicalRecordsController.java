@@ -105,12 +105,13 @@ public class MedicalRecordsController {
         String result = medicalRecordsService.updateMedicalRecord(firstName, lastName, medicalRecordDTO);
         //building a new location and putting it in the response's headers to transmit the updated medical records' uri to user
         URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
+                .fromUri(URI.create("http://localhost:8080/medicalRecord"))
                 .path("/{firstName}/{lastName}")
                 .buildAndExpand(firstName.toUpperCase(), lastName.toUpperCase())
                 .toUri();
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(location);
+        result = result + location;
         log.debug("The function updateMedicalRecords in MedicalRecordsController is ending without any exception.\n");
         return new ResponseEntity<>(result, httpHeaders, HttpStatus.OK);
     }

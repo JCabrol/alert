@@ -118,7 +118,7 @@ public class PersonController {
     public ResponseEntity<String> deletePerson(@PathVariable String id) {
         log.debug("The function deletePerson in PersonController is beginning.");
         personService.deletePersonById(id);
-        String message = "The person with id " + id + " has been deleted.";
+        String message = "The person with id " + id.toUpperCase() + " has been deleted.";
         log.debug("The function deletePerson in PersonController is ending without any exception.\n");
         return new ResponseEntity<>(message, HttpStatus.OK);
     }

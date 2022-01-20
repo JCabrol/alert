@@ -253,7 +253,7 @@ public class MedicalRecordsControllerTest {
             String firstName = "firstNameTest";
             String lastName = "lastNameTest";
             String itemsToUpdate = "{\"firstName\":\"firstNameTest\",\"lastName\":\"lastNameTest\",\"birthdate\":\"14-11-1982\",\"medications\":[\"medicationTest1\",\"medicationTest2\"],\"allergies\":[]}";
-            doReturn("information message").when(medicalRecordsService).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
+            doReturn("information message\n").when(medicalRecordsService).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
             //WHEN
             //we call the uri "/medicalRecord/{firstName}/{lastName}"
             mockMvc.perform(put("/medicalRecord/{firstName}/{lastName}", firstName, lastName)
@@ -262,7 +262,7 @@ public class MedicalRecordsControllerTest {
                     //THEN
                     //we should have an "isOK" status and the expected information message
                     .andExpect(status().isOk())
-                    .andExpect(content().string("information message"));
+                    .andExpect(content().string("information message\nhttp://localhost:8080/medicalRecord/FIRSTNAMETEST/LASTNAMETEST"));
             verify(medicalRecordsService, Mockito.times(1)).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
         }
 
@@ -276,7 +276,7 @@ public class MedicalRecordsControllerTest {
             String firstName = "firstNameTest";
             String lastName = "lastNameTest";
             String itemsToUpdate = "{\"medications\":[\"medicationTest1\",\"medicationTest2\"]}";
-            doReturn("information message").when(medicalRecordsService).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
+            doReturn("information message\n").when(medicalRecordsService).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
             //WHEN
             //we call the uri "/medicalRecord/{firstName}/{lastName}"
             mockMvc.perform(put("/medicalRecord/{firstName}/{lastName}", firstName, lastName)
@@ -285,7 +285,7 @@ public class MedicalRecordsControllerTest {
                     //THEN
                     //we should have an "isOK" status and the expected information message
                     .andExpect(status().isOk())
-                    .andExpect(content().string("information message"));
+                    .andExpect(content().string("information message\nhttp://localhost:8080/medicalRecord/FIRSTNAMETEST/LASTNAMETEST"));
             verify(medicalRecordsService, Mockito.times(1)).updateMedicalRecord(eq(firstName), eq(lastName), any(MedicalRecordDTO.class));
         }
 

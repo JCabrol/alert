@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,9 +61,15 @@ public class MedicalRecordsServiceImpl implements MedicalRecordsService {
         log.debug("The function transformMedicalRecordsToMedicalRecordDTO in MedicalRecordsService is beginning.");
         String firstName = medicalRecords.getPerson().getFirstName();
         String lastName = medicalRecords.getPerson().getLastName();
-        String birthdate = medicalRecords.getBirthdate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
-        List<String> medications = medicalRecords.getMedications().stream().map(Medication::getMedicationName).collect(Collectors.toList());
-        List<String> allergies = medicalRecords.getAllergies().stream().map(Allergy::getAllergyName).collect(Collectors.toList());
+        String birthdate="";
+        if(medicalRecords.getBirthdate()!=null)
+        {birthdate = medicalRecords.getBirthdate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));}
+        List<String> medications = new ArrayList<>();
+        if(!medicalRecords.getMedications().isEmpty())
+        {medications = medicalRecords.getMedications().stream().map(Medication::getMedicationName).collect(Collectors.toList());}
+        List<String> allergies = new ArrayList<>();
+        if(!medicalRecords.getAllergies().isEmpty())
+        {allergies = medicalRecords.getAllergies().stream().map(Allergy::getAllergyName).collect(Collectors.toList());}
         MedicalRecordDTO medicalRecordDTO = new MedicalRecordDTO(firstName, lastName, birthdate, medications, allergies);
         log.debug("The function transformMedicalRecordsToMedicalRecordDTO in MedicalRecordsService is ending without any exception.");
         return medicalRecordDTO;
